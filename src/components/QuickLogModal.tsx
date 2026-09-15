@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Search, Plus, Check } from 'lucide-react';
 import { MealItem } from '../types';
+import { globalFoodDatabase, searchGlobalFoodDatabase } from '../data/foodDatabase';
 
 interface QuickLogModalProps {
   isOpen: boolean;
@@ -82,9 +83,9 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
 
   if (!isOpen) return null;
 
-  const filteredFoods = commonFoods.filter((f) =>
-    f.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredFoods = search.trim()
+    ? searchGlobalFoodDatabase(search)
+    : [...commonFoods, ...globalFoodDatabase.slice(0, 10)];
 
   const handleSelectFood = (food: MealItem) => {
     onLogFood(selectedSection, { ...food, id: `logged-${Date.now()}` });

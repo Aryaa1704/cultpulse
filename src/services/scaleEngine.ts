@@ -1,6 +1,7 @@
 // CultPulse 1M Scale Engine: High-Throughput User State, 0ms Optimistic UI & Sync Manager
 import { MealSection, WorkoutProtocol, AnalyticsData } from '../types';
 import { initialMealSections, workoutProtocols, mockAnalyticsData } from '../data/mockData';
+import { sanitizeInput } from './securityEngine';
 
 export interface UserAppState {
   userId: string;
@@ -109,7 +110,7 @@ const defaultCommunityUsers: RegisteredUserSummary[] = [
   {
     userId: 'usr_aryan_admin',
     name: 'Aryan Sharma',
-    email: 'aryansharma009009@gmail.com',
+    email: 'admin.protected@cultpulse.internal',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80',
     role: 'admin',
     status: 'online',
@@ -198,7 +199,7 @@ const initialActivities: UserActivityEvent[] = [
     id: 'act_seed_1',
     userId: 'usr_aryan_admin',
     userName: 'Aryan Sharma',
-    userEmail: 'aryansharma009009@gmail.com',
+    userEmail: 'admin.protected@cultpulse.internal',
     userAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80',
     actionType: 'FOOD_LOG',
     title: 'Logged Dinner',
@@ -399,6 +400,9 @@ function notifyGlobalUsers() {
 export function recordUserActivity(event: Omit<UserActivityEvent, 'id' | 'timestamp'>) {
   const fullEvent: UserActivityEvent = {
     ...event,
+    title: sanitizeInput(event.title),
+    description: sanitizeInput(event.description),
+    userName: sanitizeInput(event.userName),
     id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
     timestamp: Date.now(),
   };
@@ -427,10 +431,10 @@ export function upsertUserInDirectory(patch: Partial<RegisteredUserSummary> & { 
       status: 'online',
     };
   } else {
-    const isOwner = patch.email === 'aryansharma009009@gmail.com';
+    const isOwner = patch.userId === 'usr_aryan_admin' || patch.role === 'admin';
     const newUser: RegisteredUserSummary = {
       userId: patch.userId,
-      name: patch.name,
+      name: sanitizeInput(patch.name),
       email: patch.email || null,
       avatarUrl: patch.avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80',
       role: isOwner ? 'admin' : 'athlete',

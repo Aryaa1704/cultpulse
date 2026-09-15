@@ -1,6 +1,6 @@
 {
   "name": "CultPulse",
   "description": "Precision fitness tracker, nutrition diary, workout protocols, and live performance telemetry.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

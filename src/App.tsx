@@ -8,7 +8,7 @@ import { LiveSessionView } from './components/LiveSessionView';
 import { ProgressView } from './components/ProgressView';
 import { WorkspaceHub } from './components/WorkspaceHub';
 import { QuickLogModal } from './components/QuickLogModal';
-import { BarcodeModal } from './components/BarcodeModal';
+import { SmartFoodScannerModal } from './components/SmartFoodScannerModal';
 import { AIFormModal } from './components/AIFormModal';
 import { ShareReportModal } from './components/ShareReportModal';
 import { initialMealSections, workoutProtocols, mockAnalyticsData } from './data/mockData';
@@ -23,7 +23,12 @@ import {
 } from './services/scaleEngine';
 import { ScaleMonitorModal } from './components/ScaleMonitorModal';
 import { AdminUserActivityHub } from './components/AdminUserActivityHub';
+import { SupportModal } from './components/SupportModal';
+import { isSuperAdminEmail, sanitizeInput } from './services/securityEngine';
 import { User } from 'firebase/auth';
+import { UserGoal } from './types';
+import { USER_GOALS } from './data/goalConfigs';
+import { GoalSelectionModal } from './components/GoalSelectionModal';
 
 export default function App() {
   // Active User / Tenant Partition
@@ -46,29 +51,35 @@ export default function App() {
   const [isWorkspaceConnected, setIsWorkspaceConnected] = useState(false);
   const [isScaleMonitorOpen, setIsScaleMonitorOpen] = useState(false);
   const [isAdminHubOpen, setIsAdminHubOpen] = useState(false);
+  const [isSupportOpen, setIsSupportOpen] = useState(false);
 
-  // Super Admin security (Only aryansharma009009@gmail.com)
-  const ADMIN_EMAIL = 'aryansharma009009@gmail.com';
+  // Super Admin security (Cryptographic SHA-256 Hashing Verification)
+  const [isAdminVerified, setIsAdminVerified] = useState(false);
   const [isAdminOverride, setIsAdminOverride] = useState<boolean>(() => {
-    // Default to true in initial setup so Aryan sees his admin powers immediately, or respects saved preference
     const saved = localStorage.getItem('cultpulse_admin_override');
     return saved !== null ? saved === 'true' : true;
   });
 
-  const isAdmin = Boolean(
-    (activeUser.email && activeUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ||
-    isAdminOverride
-  );
+  useEffect(() => {
+    if (activeUser.email) {
+      isSuperAdminEmail(activeUser.email).then((match) => {
+        setIsAdminVerified(match);
+      });
+    } else {
+      setIsAdminVerified(false);
+    }
+  }, [activeUser.email]);
+
+  const isAdmin = isAdminVerified || isAdminOverride;
 
   const handleSwitchToAdmin = () => {
     setIsAdminOverride(true);
     localStorage.setItem('cultpulse_admin_override', 'true');
-    setActiveUser({
-      uid: 'admin_aryansharma',
-      email: ADMIN_EMAIL,
-      displayName: 'Aryan Sharma (Super Admin)',
-    });
-    showToast(`Welcome back, Aryan! Admin mode unlocked.`);
+    setActiveUser((prev) => ({
+      ...prev,
+      displayName: 'System Administrator (Owner)',
+    }));
+    showToast(`Super Admin console unlocked.`);
   };
 
   const handleSwitchToRegularUser = () => {
@@ -118,6 +129,61 @@ export default function App() {
   const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
   const [isAIFormOpen, setIsAIFormOpen] = useState(false);
   const [isShareReportOpen, setIsShareReportOpen] = useState(false);
+
+  // Goal Onboarding & Goal Personalization
+  const [userGoal, setUserGoal] = useState<UserGoal>(() => {
+    const saved = localStorage.getItem('cultpulse_user_goal') as UserGoal | null;
+    return saved || 'muscle_building';
+  });
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState<boolean>(() => {
+    return localStorage.getItem('cultpulse_user_goal') === null;
+  });
+
+  const handleSelectGoal = (newGoal: UserGoal) => {
+    setUserGoal(newGoal);
+    localStorage.setItem('cultpulse_user_goal', newGoal);
+    setIsGoalModalOpen(false);
+
+    // Synchronize daily caloric target & macro goals dynamically to selected goal
+    const goalConfig = USER_GOALS[newGoal];
+    if (goalConfig) {
+      setAppState((prev) => {
+        const updated: UserAppState = {
+          ...prev,
+          dailyGoal: goalConfig.targetKcal,
+          analyticsData: {
+            ...prev.analyticsData,
+            macroPrecision: {
+              ...prev.analyticsData.macroPrecision,
+              protein: {
+                ...prev.analyticsData.macroPrecision.protein,
+                target: goalConfig.targetProtein,
+              },
+              carbs: {
+                ...prev.analyticsData.macroPrecision.carbs,
+                target: goalConfig.targetCarbs,
+              },
+              fats: {
+                ...prev.analyticsData.macroPrecision.fats,
+                target: goalConfig.targetFats,
+              },
+            },
+          },
+        };
+        saveUserAppStateOptimistic(updated, 'GOAL_UPDATE', { goal: newGoal });
+        return updated;
+      });
+
+      // Switch active tab according to user's intent
+      if (newGoal === 'diet_nutrition') {
+        setActiveTab('diary');
+      } else if (newGoal === 'muscle_building' || newGoal === 'endurance_hiit') {
+        setActiveTab('workouts');
+      }
+
+      showToast(`Goal set: ${goalConfig.title} (${goalConfig.targetKcal} kcal / ${goalConfig.targetProtein}g Protein)`);
+    }
+  };
 
   // Notification Toast
   const [toast, setToast] = useState<string | null>(null);
@@ -306,9 +372,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF9F9] text-[#1B1C1C] flex flex-col items-center">
+    <div className="min-h-screen bg-[#FBF9F9] dark:bg-[#0E0F10] text-[#1B1C1C] dark:text-[#EAEAEA] flex flex-col items-center transition-colors">
       {/* Container Frame */}
-      <div className="w-full max-w-xl mx-auto flex flex-col min-h-screen relative shadow-2xs bg-[#FBF9F9]">
+      <div className="w-full max-w-xl mx-auto flex flex-col min-h-screen relative shadow-2xs bg-[#FBF9F9] dark:bg-[#141517] border-x border-transparent dark:border-[#232427] transition-colors">
         {/* Sticky Header */}
         <Header
           activeTab={activeTab}
@@ -318,6 +384,9 @@ export default function App() {
           onWorkspaceClick={() => setActiveTab('workspace')}
           onScaleMonitorClick={() => setIsScaleMonitorOpen(true)}
           onAdminHubClick={() => setIsAdminHubOpen(true)}
+          onSupportClick={() => setIsSupportOpen(true)}
+          onGoalClick={() => setIsGoalModalOpen(true)}
+          currentGoal={userGoal}
           isWorkspaceConnected={isWorkspaceConnected}
           isAdmin={isAdmin}
         />
@@ -366,6 +435,7 @@ export default function App() {
               onOpenSettings={() => setIsScaleMonitorOpen(true)}
               onOpenWorkspace={() => setActiveTab('workspace')}
               onOpenAdminHub={() => setIsAdminHubOpen(true)}
+              onOpenSupport={() => setIsSupportOpen(true)}
               isAdmin={isAdmin}
               onAdminLoginToggle={isAdmin ? handleSwitchToRegularUser : handleSwitchToAdmin}
             />
@@ -410,7 +480,7 @@ export default function App() {
           onLogFood={handleLogFood}
         />
 
-        <BarcodeModal
+        <SmartFoodScannerModal
           isOpen={isBarcodeOpen}
           onClose={() => setIsBarcodeOpen(false)}
           onLogItem={handleLogFood}
@@ -425,6 +495,22 @@ export default function App() {
           isOpen={isShareReportOpen}
           onClose={() => setIsShareReportOpen(false)}
           data={appState.analyticsData}
+        />
+
+        {/* User Help & Support Center (s44810335@gmail.com) */}
+        <SupportModal
+          isOpen={isSupportOpen}
+          onClose={() => setIsSupportOpen(false)}
+          userEmail={activeUser.email}
+          userName={activeUser.displayName}
+        />
+
+        {/* Goal Onboarding & Personalization Modal */}
+        <GoalSelectionModal
+          isOpen={isGoalModalOpen}
+          onSelectGoal={handleSelectGoal}
+          currentGoal={userGoal}
+          isInitialOnboarding={localStorage.getItem('cultpulse_user_goal') === null}
         />
 
         {/* Toast Notification */}

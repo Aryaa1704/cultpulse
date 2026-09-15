@@ -131,45 +131,45 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
   return (
     <div className="space-y-4 pb-28">
       {/* Telemetry Strip (3 cards in 1 row) */}
-      <div className="grid grid-cols-3 gap-2 bg-white border border-[#E5E5E5] rounded-xl p-3 shadow-2xs">
+      <div className="grid grid-cols-3 gap-2 bg-white dark:bg-[#1C1C1E] border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-3 shadow-2xs">
         {/* Heart Rate */}
-        <div className="flex items-center gap-2 border-r border-[#E5E5E5] pr-2">
-          <div className="w-8 h-8 rounded-md bg-[#FBF9F9] border border-[#E5E5E5] flex items-center justify-center text-[#242424] shrink-0">
+        <div className="flex items-center gap-2 border-r border-[#E5E5E5] dark:border-neutral-800 pr-2">
+          <div className="w-8 h-8 rounded-md bg-[#FBF9F9] dark:bg-neutral-900 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#242424] dark:text-neutral-200 shrink-0">
             <Heart size={16} className="text-red-600 animate-pulse" />
           </div>
           <div>
-            <div className="font-display font-bold text-sm text-[#1B1C1C] flex items-baseline gap-1">
+            <div className="font-display font-bold text-sm text-[#1B1C1C] dark:text-neutral-100 flex items-baseline gap-1">
               <span>{heartRate}</span>
-              <span className="text-[10px] font-mono text-[#767676]">BPM</span>
+              <span className="text-[10px] font-mono text-[#767676] dark:text-neutral-400">BPM</span>
             </div>
-            <div className="text-[10px] text-[#767676] truncate">Zone 4 (Aerobic)</div>
+            <div className="text-[10px] text-[#767676] dark:text-neutral-400 truncate">Zone 4 (Aerobic)</div>
           </div>
         </div>
 
         {/* Burned */}
-        <div className="flex items-center gap-2 border-r border-[#E5E5E5] px-2">
-          <div className="w-8 h-8 rounded-md bg-[#FBF9F9] border border-[#E5E5E5] flex items-center justify-center text-[#242424] shrink-0">
+        <div className="flex items-center gap-2 border-r border-[#E5E5E5] dark:border-neutral-800 px-2">
+          <div className="w-8 h-8 rounded-md bg-[#FBF9F9] dark:bg-neutral-900 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#242424] dark:text-neutral-200 shrink-0">
             <Flame size={16} className="text-amber-600" />
           </div>
           <div>
-            <div className="font-display font-bold text-sm text-[#1B1C1C] flex items-baseline gap-1">
+            <div className="font-display font-bold text-sm text-[#1B1C1C] dark:text-neutral-100 flex items-baseline gap-1">
               <span>{activeCalories}</span>
-              <span className="text-[10px] font-mono text-[#767676]">KCAL</span>
+              <span className="text-[10px] font-mono text-[#767676] dark:text-neutral-400">KCAL</span>
             </div>
-            <div className="text-[10px] text-[#767676] truncate">Est. Active</div>
+            <div className="text-[10px] text-[#767676] dark:text-neutral-400 truncate">Est. Active</div>
           </div>
         </div>
 
         {/* Remaining Time */}
         <div className="flex items-center gap-2 pl-2">
-          <div className="w-8 h-8 rounded-md bg-[#FBF9F9] border border-[#E5E5E5] flex items-center justify-center text-[#242424] shrink-0">
-            <Clock size={16} className="text-[#4A4A4A]" />
+          <div className="w-8 h-8 rounded-md bg-[#FBF9F9] dark:bg-neutral-900 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#242424] dark:text-neutral-200 shrink-0">
+            <Clock size={16} className="text-[#4A4A4A] dark:text-neutral-400" />
           </div>
           <div>
-            <div className="font-display font-bold text-sm text-[#1B1C1C]">
+            <div className="font-display font-bold text-sm text-[#1B1C1C] dark:text-neutral-100">
               {formatTime(totalSecondsRemaining)}
             </div>
-            <div className="text-[10px] font-mono text-[#767676] uppercase">REMAINING</div>
+            <div className="text-[10px] font-mono text-[#767676] dark:text-neutral-400 uppercase">REMAINING</div>
           </div>
         </div>
       </div>
@@ -213,19 +213,19 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
       </div>
 
       {/* Interval Progress Bar & Status */}
-      <div className="bg-white border border-[#E5E5E5] rounded-xl p-4 shadow-2xs space-y-3">
+      <div className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-4 shadow-2xs space-y-3">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-mono font-semibold tracking-wider text-[#1B1C1C]">
+          <span className="font-mono font-semibold tracking-wider text-[#1B1C1C] dark:text-neutral-100">
             WORK (45S)
           </span>
-          <span className="text-[#767676] font-medium">Round {currentSet} / 3</span>
-          <span className="font-mono text-[#767676]">REST (15S)</span>
+          <span className="text-[#767676] dark:text-neutral-400 font-medium">Round {currentSet} / 3</span>
+          <span className="font-mono text-[#767676] dark:text-neutral-400">REST (15S)</span>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-[#E5E5E5] h-2 rounded-full overflow-hidden">
+        <div className="w-full bg-[#E5E5E5] dark:bg-neutral-800 h-2 rounded-full overflow-hidden">
           <div
-            className="bg-[#242424] h-full transition-all duration-300"
+            className="bg-[#242424] dark:bg-white h-full transition-all duration-300"
             style={{ width: `${Math.max(5, ((45 - secondsRemaining) / 45) * 100)}%` }}
           ></div>
         </div>
@@ -233,20 +233,20 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
         {/* Interval Timer Big Display */}
         <div className="flex items-end justify-between pt-1">
           <div>
-            <div className="text-[10px] font-mono tracking-widest text-[#767676] uppercase">
+            <div className="text-[10px] font-mono tracking-widest text-[#767676] dark:text-neutral-400 uppercase">
               INTERVAL TIMER
             </div>
-            <div className="font-display font-bold text-3xl md:text-4xl text-[#1B1C1C] tracking-tight">
+            <div className="font-display font-bold text-3xl md:text-4xl text-[#1B1C1C] dark:text-neutral-100 tracking-tight">
               00:{secondsRemaining.toString().padStart(2, '0')}{' '}
-              <span className="text-sm font-mono text-[#767676] font-medium">SEC</span>
+              <span className="text-sm font-mono text-[#767676] dark:text-neutral-400 font-medium">SEC</span>
             </div>
           </div>
 
           <div className="text-right">
-            <div className="text-[10px] font-mono tracking-widest text-[#767676] uppercase">
+            <div className="text-[10px] font-mono tracking-widest text-[#767676] dark:text-neutral-400 uppercase">
               ROUTINE
             </div>
-            <div className="font-display font-semibold text-sm md:text-base text-[#1B1C1C] truncate max-w-[170px]">
+            <div className="font-display font-semibold text-sm md:text-base text-[#1B1C1C] dark:text-neutral-200 truncate max-w-[170px]">
               {currentProtocol ? currentProtocol.title : 'Full Body Metabolic Blast'}
             </div>
           </div>
@@ -260,7 +260,7 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           onClick={handlePrevDrill}
           disabled={currentDrillIndex === 0}
           aria-label="Previous drill"
-          className="w-11 h-11 rounded-full bg-white border border-[#E5E5E5] text-[#242424] hover:bg-[#F2F2F2] disabled:opacity-40 flex items-center justify-center transition-colors shadow-2xs"
+          className="w-11 h-11 rounded-full bg-white dark:bg-neutral-800 border border-[#E5E5E5] dark:border-neutral-700 text-[#242424] dark:text-neutral-200 hover:bg-[#F2F2F2] dark:hover:bg-neutral-700 disabled:opacity-40 flex items-center justify-center transition-colors shadow-2xs"
         >
           <SkipBack size={18} />
         </button>
@@ -269,7 +269,7 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
         <button
           onClick={handleRewind10}
           aria-label="Rewind 10 seconds"
-          className="w-11 h-11 rounded-full bg-white border border-[#E5E5E5] text-[#242424] hover:bg-[#F2F2F2] flex items-center justify-center transition-colors shadow-2xs relative"
+          className="w-11 h-11 rounded-full bg-white dark:bg-neutral-800 border border-[#E5E5E5] dark:border-neutral-700 text-[#242424] dark:text-neutral-200 hover:bg-[#F2F2F2] dark:hover:bg-neutral-700 flex items-center justify-center transition-colors shadow-2xs relative"
         >
           <RotateCcw size={18} />
           <span className="absolute text-[8px] font-bold font-mono">10</span>
@@ -279,7 +279,7 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
         <button
           onClick={() => setIsPlaying(!isPlaying)}
           aria-label={isPlaying ? 'Pause workout' : 'Resume workout'}
-          className="w-16 h-16 rounded-full bg-[#242424] hover:bg-[#1B1C1C] text-white flex items-center justify-center transition-transform hover:scale-105 shadow-md"
+          className="w-16 h-16 rounded-full bg-[#242424] dark:bg-white hover:bg-[#1B1C1C] dark:hover:bg-neutral-200 text-white dark:text-[#1B1C1C] flex items-center justify-center transition-transform hover:scale-105 shadow-md"
         >
           {isPlaying ? (
             <Pause size={26} fill="currentColor" />
@@ -292,7 +292,7 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
         <button
           onClick={handleForward10}
           aria-label="Fast forward 10 seconds"
-          className="w-11 h-11 rounded-full bg-white border border-[#E5E5E5] text-[#242424] hover:bg-[#F2F2F2] flex items-center justify-center transition-colors shadow-2xs relative"
+          className="w-11 h-11 rounded-full bg-white dark:bg-neutral-800 border border-[#E5E5E5] dark:border-neutral-700 text-[#242424] dark:text-neutral-200 hover:bg-[#F2F2F2] dark:hover:bg-neutral-700 flex items-center justify-center transition-colors shadow-2xs relative"
         >
           <RotateCw size={18} />
           <span className="absolute text-[8px] font-bold font-mono">10</span>
@@ -303,44 +303,44 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           onClick={handleNextDrill}
           disabled={currentDrillIndex >= liveDrills.length - 1}
           aria-label="Next drill"
-          className="w-11 h-11 rounded-full bg-white border border-[#E5E5E5] text-[#242424] hover:bg-[#F2F2F2] disabled:opacity-40 flex items-center justify-center transition-colors shadow-2xs"
+          className="w-11 h-11 rounded-full bg-white dark:bg-neutral-800 border border-[#E5E5E5] dark:border-neutral-700 text-[#242424] dark:text-neutral-200 hover:bg-[#F2F2F2] dark:hover:bg-neutral-700 disabled:opacity-40 flex items-center justify-center transition-colors shadow-2xs"
         >
           <SkipForward size={18} />
         </button>
       </div>
 
       {/* Active Drill Card */}
-      <div className="bg-white border-l-4 border-l-[#242424] border border-[#E5E5E5] rounded-xl p-4 shadow-2xs flex items-center justify-between">
+      <div className="bg-white dark:bg-[#1C1C1E] border-l-4 border-l-[#242424] dark:border-l-white border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-4 shadow-2xs flex items-center justify-between">
         <div className="flex items-center gap-3">
           <img
             src={currentDrill.imageUrl}
             alt={currentDrill.name}
-            className="w-12 h-12 rounded-lg object-cover border border-[#E5E5E5] shrink-0"
+            className="w-12 h-12 rounded-lg object-cover border border-[#E5E5E5] dark:border-neutral-700 shrink-0"
             referrerPolicy="no-referrer"
           />
           <div>
             <div className="flex items-center gap-2 text-xs">
-              <span className="font-mono text-[#767676] font-medium">
+              <span className="font-mono text-[#767676] dark:text-neutral-400 font-medium">
                 DRILL {currentDrill.number}
               </span>
-              <span className="px-1.5 py-0.2 bg-[#242424] text-white text-[9px] font-mono font-semibold rounded-xs">
+              <span className="px-1.5 py-0.2 bg-[#242424] dark:bg-white text-white dark:text-[#242424] text-[9px] font-mono font-semibold rounded-xs">
                 ACTIVE
               </span>
             </div>
-            <div className="font-display font-bold text-sm text-[#1B1C1C] truncate max-w-[180px]">
+            <div className="font-display font-bold text-sm text-[#1B1C1C] dark:text-neutral-100 truncate max-w-[180px]">
               {currentDrill.name}
             </div>
-            <div className="text-[11px] text-[#767676]">
+            <div className="text-[11px] text-[#767676] dark:text-neutral-400">
               {currentDrill.sets} Sets × {currentDrill.workSeconds}s • {currentDrill.load}
             </div>
           </div>
         </div>
 
         <div className="text-right shrink-0">
-          <div className="font-display font-bold text-base text-[#1B1C1C]">
+          <div className="font-display font-bold text-base text-[#1B1C1C] dark:text-neutral-100">
             Set {currentSet}
           </div>
-          <div className="text-[9px] font-mono tracking-wider text-[#767676] uppercase">
+          <div className="text-[9px] font-mono tracking-wider text-[#767676] dark:text-neutral-400 uppercase">
             {currentDrill.impact}
           </div>
         </div>
@@ -348,17 +348,17 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
 
       {/* Up Next Card */}
       {nextDrill && (
-        <div className="bg-[#FBF9F9] border border-[#E5E5E5] rounded-xl p-3.5 flex items-center justify-between shadow-2xs">
+        <div className="bg-[#FBF9F9] dark:bg-neutral-900/60 border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-3.5 flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-white border border-[#E5E5E5] flex items-center justify-center text-[#4A4A4A] shrink-0">
+            <div className="w-10 h-10 rounded-lg bg-white dark:bg-neutral-800 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#4A4A4A] dark:text-neutral-300 shrink-0">
               <Dumbbell size={18} />
             </div>
             <div>
-              <div className="text-[10px] font-mono text-[#767676] uppercase">
+              <div className="text-[10px] font-mono text-[#767676] dark:text-neutral-400 uppercase">
                 UP NEXT • 00:15 Transition
               </div>
-              <div className="font-semibold text-xs text-[#1B1C1C]">{nextDrill.name}</div>
-              <div className="text-[11px] text-[#767676]">
+              <div className="font-semibold text-xs text-[#1B1C1C] dark:text-neutral-100">{nextDrill.name}</div>
+              <div className="text-[11px] text-[#767676] dark:text-neutral-400">
                 Drill {nextDrill.number.split('/')[0]} • {nextDrill.load} • {nextDrill.workSeconds}s
               </div>
             </div>
@@ -367,7 +367,7 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           <button
             onClick={() => setCurrentDrillIndex(currentDrillIndex + 1)}
             aria-label="Preview next drill"
-            className="w-8 h-8 rounded-full border border-[#E5E5E5] bg-white flex items-center justify-center text-[#767676] hover:text-[#1B1C1C] hover:border-[#242424] transition-colors"
+            className="w-8 h-8 rounded-full border border-[#E5E5E5] dark:border-neutral-700 bg-white dark:bg-neutral-800 flex items-center justify-center text-[#767676] dark:text-neutral-400 hover:text-[#1B1C1C] dark:hover:text-white hover:border-[#242424] dark:hover:border-neutral-400 transition-colors"
           >
             <Eye size={15} />
           </button>
@@ -382,35 +382,35 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           id="btn-voice-toggle"
           className={`py-2.5 px-2 rounded-xl border transition-colors flex flex-col items-center justify-center text-center ${
             isVoiceOn
-              ? 'bg-white border-[#E5E5E5] text-[#242424]'
-              : 'bg-[#F2F2F2] border-[#E5E5E5] text-[#767676]'
+              ? 'bg-white dark:bg-neutral-800 border-[#E5E5E5] dark:border-neutral-700 text-[#242424] dark:text-neutral-100'
+              : 'bg-[#F2F2F2] dark:bg-neutral-900 border-[#E5E5E5] dark:border-neutral-800 text-[#767676] dark:text-neutral-400'
           }`}
         >
           {isVoiceOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
           <span className="font-semibold text-xs mt-1">Voice: {isVoiceOn ? 'ON' : 'OFF'}</span>
-          <span className="text-[10px] text-[#767676]">Coach Cues</span>
+          <span className="text-[10px] text-[#767676] dark:text-neutral-400">Coach Cues</span>
         </button>
 
         {/* AI Form Check */}
         <button
           onClick={onOpenAIForm}
           id="btn-ai-form"
-          className="py-2.5 px-2 rounded-xl bg-white border border-[#E5E5E5] hover:border-[#242424] text-[#242424] transition-colors flex flex-col items-center justify-center text-center shadow-2xs"
+          className="py-2.5 px-2 rounded-xl bg-white dark:bg-neutral-800 border border-[#E5E5E5] dark:border-neutral-700 hover:border-[#242424] dark:hover:border-neutral-500 text-[#242424] dark:text-neutral-100 transition-colors flex flex-col items-center justify-center text-center shadow-2xs"
         >
           <Camera size={16} />
           <span className="font-semibold text-xs mt-1">AI Form</span>
-          <span className="text-[10px] text-emerald-600 font-medium">Ready</span>
+          <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">Ready</span>
         </button>
 
         {/* End Early */}
         <button
           onClick={() => onEndSession(activeCalories)}
           id="btn-end-session"
-          className="py-2.5 px-2 rounded-xl bg-white border border-[#E5E5E5] hover:border-red-500 text-red-600 transition-colors flex flex-col items-center justify-center text-center shadow-2xs"
+          className="py-2.5 px-2 rounded-xl bg-white dark:bg-neutral-800 border border-[#E5E5E5] dark:border-neutral-700 hover:border-red-500 text-red-600 dark:text-red-400 transition-colors flex flex-col items-center justify-center text-center shadow-2xs"
         >
           <Square size={16} fill="currentColor" />
           <span className="font-semibold text-xs mt-1">End Early</span>
-          <span className="text-[10px] text-[#767676]">Save Log</span>
+          <span className="text-[10px] text-[#767676] dark:text-neutral-400">Save Log</span>
         </button>
       </div>
     </div>

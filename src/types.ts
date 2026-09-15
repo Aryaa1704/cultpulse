@@ -99,3 +99,18 @@ export interface AnalyticsData {
     remaining: number;
   };
 }
+
+export type UserGoal = 'muscle_building' | 'fat_loss' | 'diet_nutrition' | 'endurance_hiit' | 'general_fitness';
+
+export interface UserGoalConfig {
+  id: UserGoal;
+  title: string;
+  description: string;
+  iconName: string;
+  targetKcal: number;
+  targetProtein: number;
+  targetCarbs: number;
+  targetFats: number;
+  recommendedModality: string;
+  badge: string;
+}
