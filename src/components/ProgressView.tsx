@@ -20,6 +20,9 @@ interface ProgressViewProps {
   onOpenShareReport: () => void;
   onOpenSettings?: () => void;
   onOpenWorkspace?: () => void;
+  onOpenAdminHub?: () => void;
+  isAdmin?: boolean;
+  onAdminLoginToggle?: () => void;
 }
 
 export const ProgressView: React.FC<ProgressViewProps> = ({
@@ -27,6 +30,9 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
   onOpenShareReport,
   onOpenSettings,
   onOpenWorkspace,
+  onOpenAdminHub,
+  isAdmin = false,
+  onAdminLoginToggle,
 }) => {
   const [activeHoverWeek, setActiveHoverWeek] = useState<number | null>(null);
 
@@ -87,13 +93,27 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={onOpenSettings}
-          aria-label="Settings"
-          className="p-2 rounded-lg border border-[#E5E5E5] hover:border-[#242424] text-[#4A4A4A] transition-colors"
-        >
-          <Settings size={18} />
-        </button>
+        <div className="flex items-center gap-1.5">
+          {/* Admin Hub: Strictly visible ONLY to aryansharma009009@gmail.com */}
+          {isAdmin && onOpenAdminHub && (
+            <button
+              onClick={onOpenAdminHub}
+              title="Super Admin: User Telemetry & Live Activity (aryansharma009009@gmail.com)"
+              className="px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-[11px] font-mono font-bold hover:bg-amber-100 transition-colors flex items-center gap-1"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>ADMIN HUB</span>
+            </button>
+          )}
+
+          <button
+            onClick={onOpenSettings}
+            aria-label="Settings"
+            className="p-2 rounded-lg border border-[#E5E5E5] hover:border-[#242424] text-[#4A4A4A] transition-colors"
+          >
+            <Settings size={18} />
+          </button>
+        </div>
       </div>
 
       {/* Week 32 Rhythm Card */}
@@ -521,6 +541,33 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         <p className="text-center text-[10px] text-[#767676] font-mono mt-3">
           CultPulse Open Analytics • Zero paywalls • 100% unlocked forever
         </p>
+
+        {/* Discreet Super Admin Authentication Controls */}
+        <div className="pt-2 text-center">
+          {isAdmin ? (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>Logged in as Super Admin (aryansharma009009@gmail.com)</span>
+              {onAdminLoginToggle && (
+                <button
+                  onClick={onAdminLoginToggle}
+                  className="underline hover:text-black ml-1 text-[9px] uppercase font-bold"
+                >
+                  Switch to Regular User
+                </button>
+              )}
+            </div>
+          ) : (
+            onAdminLoginToggle && (
+              <button
+                onClick={onAdminLoginToggle}
+                className="text-[10px] font-mono text-[#767676] hover:text-[#242424] underline transition-colors"
+              >
+                🔐 Owner Access: Login as aryansharma009009@gmail.com (Super Admin)
+              </button>
+            )
+          )}
+        </div>
       </div>
     </div>
   );

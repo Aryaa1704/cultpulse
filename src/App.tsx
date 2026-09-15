@@ -13,37 +13,104 @@ import { AIFormModal } from './components/AIFormModal';
 import { ShareReportModal } from './components/ShareReportModal';
 import { initialMealSections, workoutProtocols, mockAnalyticsData } from './data/mockData';
 import { initAuth } from './services/googleAuth';
+import {
+  UserAppState,
+  loadUserAppState,
+  saveUserAppStateOptimistic,
+  getOrCreateGuestId,
+  setActiveTelemetryUserId,
+  recordUserActivity,
+} from './services/scaleEngine';
+import { ScaleMonitorModal } from './components/ScaleMonitorModal';
+import { AdminUserActivityHub } from './components/AdminUserActivityHub';
+import { User } from 'firebase/auth';
 
 export default function App() {
-  // Navigation
+  // Active User / Tenant Partition
+  const [activeUser, setActiveUser] = useState<{
+    uid: string;
+    email: string | null;
+    displayName: string | null;
+  }>(() => {
+    const guestId = getOrCreateGuestId();
+    return { uid: guestId, email: null, displayName: 'Athlete (Guest)' };
+  });
+
+  // Master App State managed by 1M Scale Engine
+  const [appState, setAppState] = useState<UserAppState>(() =>
+    loadUserAppState(getOrCreateGuestId())
+  );
+
+  // Navigation & Modals
   const [activeTab, setActiveTab] = useState<NavTab>('diary');
   const [isWorkspaceConnected, setIsWorkspaceConnected] = useState(false);
+  const [isScaleMonitorOpen, setIsScaleMonitorOpen] = useState(false);
+  const [isAdminHubOpen, setIsAdminHubOpen] = useState(false);
+
+  // Super Admin security (Only aryansharma009009@gmail.com)
+  const ADMIN_EMAIL = 'aryansharma009009@gmail.com';
+  const [isAdminOverride, setIsAdminOverride] = useState<boolean>(() => {
+    // Default to true in initial setup so Aryan sees his admin powers immediately, or respects saved preference
+    const saved = localStorage.getItem('cultpulse_admin_override');
+    return saved !== null ? saved === 'true' : true;
+  });
+
+  const isAdmin = Boolean(
+    (activeUser.email && activeUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ||
+    isAdminOverride
+  );
+
+  const handleSwitchToAdmin = () => {
+    setIsAdminOverride(true);
+    localStorage.setItem('cultpulse_admin_override', 'true');
+    setActiveUser({
+      uid: 'admin_aryansharma',
+      email: ADMIN_EMAIL,
+      displayName: 'Aryan Sharma (Super Admin)',
+    });
+    showToast(`Welcome back, Aryan! Admin mode unlocked.`);
+  };
+
+  const handleSwitchToRegularUser = () => {
+    setIsAdminOverride(false);
+    localStorage.setItem('cultpulse_admin_override', 'false');
+    const guestId = getOrCreateGuestId();
+    setActiveUser({ uid: guestId, email: null, displayName: 'Athlete (Guest)' });
+    setIsAdminHubOpen(false);
+    showToast('Switched to Regular User view. Admin controls hidden.');
+  };
 
   useEffect(() => {
     const unsubscribe = initAuth(
-      () => setIsWorkspaceConnected(true),
-      () => setIsWorkspaceConnected(false)
+      (user: User) => {
+        setIsWorkspaceConnected(true);
+        setActiveUser({
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName,
+        });
+        setActiveTelemetryUserId(user.uid);
+        const loadedState = loadUserAppState(user.uid, user.email, user.displayName);
+        setAppState(loadedState);
+
+        recordUserActivity({
+          userId: user.uid,
+          userName: user.displayName || user.email?.split('@')[0] || 'Athlete',
+          userEmail: user.email,
+          actionType: 'SIGN_IN',
+          title: 'Signed in via Google OAuth',
+          description: 'User connected with Google Workspace credentials',
+        });
+      },
+      () => {
+        setIsWorkspaceConnected(false);
+        const guestId = getOrCreateGuestId();
+        setActiveUser({ uid: guestId, email: null, displayName: 'Athlete (Guest)' });
+        setActiveTelemetryUserId(guestId);
+      }
     );
     return () => unsubscribe();
   }, []);
-
-  // Diary Date State
-  const [dayOffset, setDayOffset] = useState(0);
-  const [cycleNumber, setCycleNumber] = useState(12);
-
-  // Diary Data State
-  const [dailyGoal, setDailyGoal] = useState(2200);
-  const [burnSynced, setBurnSynced] = useState(400);
-  const [mealSections, setMealSections] = useState<MealSection[]>(initialMealSections);
-  const [waterMl, setWaterMl] = useState(1750);
-  const waterGoalMl = 3000;
-
-  // Workouts State
-  const [protocols, setProtocols] = useState<WorkoutProtocol[]>(workoutProtocols);
-  const [activeProtocol, setActiveProtocol] = useState<WorkoutProtocol | null>(null);
-
-  // Analytics State
-  const [analyticsData, setAnalyticsData] = useState<AnalyticsData>(mockAnalyticsData);
 
   // Modals
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
@@ -64,28 +131,54 @@ export default function App() {
 
   // Date formatted
   const getFormattedDate = () => {
-    if (dayOffset === 0) return 'Today, Oct 24';
-    if (dayOffset === -1) return 'Yesterday, Oct 23';
-    if (dayOffset === 1) return 'Tomorrow, Oct 25';
-    const d = new Date(2026, 9, 24 + dayOffset);
+    if (appState.dayOffset === 0) return 'Today, Oct 24';
+    if (appState.dayOffset === -1) return 'Yesterday, Oct 23';
+    if (appState.dayOffset === 1) return 'Tomorrow, Oct 25';
+    const d = new Date(2026, 9, 24 + appState.dayOffset);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
   const handlePrevDay = () => {
-    setDayOffset((prev) => prev - 1);
+    const updated = saveUserAppStateOptimistic(
+      { ...appState, dayOffset: appState.dayOffset - 1 },
+      'CHANGE_DAY',
+      { offset: appState.dayOffset - 1 }
+    );
+    setAppState(updated);
   };
 
   const handleNextDay = () => {
-    setDayOffset((prev) => prev + 1);
+    const updated = saveUserAppStateOptimistic(
+      { ...appState, dayOffset: appState.dayOffset + 1 },
+      'CHANGE_DAY',
+      { offset: appState.dayOffset + 1 }
+    );
+    setAppState(updated);
   };
 
-  // Hydration handlers
+  // Hydration handlers (0ms Optimistic Update)
   const handleAddWater = (amount: number) => {
-    setWaterMl((prev) => {
-      const next = Math.max(0, Math.min(waterGoalMl + 1000, prev + amount));
-      return next;
-    });
+    const nextWater = Math.max(
+      0,
+      Math.min(appState.waterGoalMl + 1000, appState.waterMl + amount)
+    );
+    const updated = saveUserAppStateOptimistic(
+      { ...appState, waterMl: nextWater },
+      'ADD_WATER',
+      { amount, nextWater }
+    );
+    setAppState(updated);
     showToast(amount > 0 ? `+${amount} ml logged` : `${amount} ml adjusted`);
+
+    recordUserActivity({
+      userId: activeUser.uid,
+      userName: activeUser.displayName || 'Cult Athlete',
+      userEmail: activeUser.email,
+      actionType: 'WATER_LOG',
+      title: amount > 0 ? 'Logged Hydration' : 'Adjusted Water Intake',
+      description: `Logged ${amount > 0 ? '+' : ''}${amount}ml Water (Daily Total: ${nextWater}ml)`,
+      metrics: { waterMl: amount },
+    });
   };
 
   const handleSetCustomWater = () => {
@@ -93,56 +186,123 @@ export default function App() {
     if (input) {
       const num = parseInt(input, 10);
       if (!isNaN(num) && num > 0) {
-        setWaterMl((prev) => prev + num);
+        const nextWater = appState.waterMl + num;
+        const updated = saveUserAppStateOptimistic(
+          { ...appState, waterMl: nextWater },
+          'CUSTOM_WATER',
+          { amount: num }
+        );
+        setAppState(updated);
         showToast(`+${num} ml added to Hydration`);
+
+        recordUserActivity({
+          userId: activeUser.uid,
+          userName: activeUser.displayName || 'Cult Athlete',
+          userEmail: activeUser.email,
+          actionType: 'WATER_LOG',
+          title: 'Custom Hydration Log',
+          description: `Logged +${num}ml Water (Daily Total: ${nextWater}ml)`,
+          metrics: { waterMl: num },
+        });
       }
     }
   };
 
-  // Food logging
+  // Food logging (0ms Optimistic Update)
   const handleOpenQuickLog = (sectionId?: string) => {
     setQuickLogTargetSection(sectionId || 'dinner');
     setIsQuickLogOpen(true);
   };
 
   const handleLogFood = (sectionId: string, item: MealItem) => {
-    setMealSections((prevSections) =>
-      prevSections.map((sec) => {
-        if (sec.id === sectionId) {
-          return {
-            ...sec,
-            isPending: false,
-            calories: sec.calories + item.calories,
-            carbs: sec.carbs + item.carbs,
-            protein: sec.protein + item.protein,
-            fats: sec.fats + item.fats,
-            items: [...sec.items, item],
-          };
-        }
-        return sec;
-      })
+    const updatedSections = appState.mealSections.map((sec) => {
+      if (sec.id === sectionId) {
+        return {
+          ...sec,
+          isPending: false,
+          calories: sec.calories + item.calories,
+          carbs: sec.carbs + item.carbs,
+          protein: sec.protein + item.protein,
+          fats: sec.fats + item.fats,
+          items: [...sec.items, item],
+        };
+      }
+      return sec;
+    });
+
+    const updated = saveUserAppStateOptimistic(
+      { ...appState, mealSections: updatedSections },
+      'LOG_FOOD',
+      { sectionId, item }
     );
+    setAppState(updated);
     showToast(`Added ${item.name} (+${item.calories} kcal)`);
+
+    recordUserActivity({
+      userId: activeUser.uid,
+      userName: activeUser.displayName || 'Cult Athlete',
+      userEmail: activeUser.email,
+      actionType: 'FOOD_LOG',
+      title: `Logged ${sectionId.charAt(0).toUpperCase() + sectionId.slice(1)}`,
+      description: `Added "${item.name}" (+${item.calories} kcal, ${item.protein}g protein)`,
+      metrics: {
+        calories: item.calories,
+        macros: { carbs: item.carbs, protein: item.protein, fats: item.fats },
+      },
+    });
   };
 
   // Workouts handlers
+  const [activeProtocol, setActiveProtocol] = useState<WorkoutProtocol | null>(null);
+
   const handleStartWorkout = (protocol: WorkoutProtocol) => {
     setActiveProtocol(protocol);
     setActiveTab('live');
     showToast(`Launched "${protocol.title}" into Live Session`);
+
+    recordUserActivity({
+      userId: activeUser.uid,
+      userName: activeUser.displayName || 'Cult Athlete',
+      userEmail: activeUser.email,
+      actionType: 'WORKOUT_START',
+      title: 'Started Live Workout Protocol',
+      description: `Initiated active session: "${protocol.title}" (${protocol.duration})`,
+    });
   };
 
   const handleToggleFavorite = (id: string) => {
-    setProtocols((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, isFavorite: !p.isFavorite } : p))
+    const updatedProtocols = appState.protocols.map((p) =>
+      p.id === id ? { ...p, isFavorite: !p.isFavorite } : p
     );
+    const updated = saveUserAppStateOptimistic(
+      { ...appState, protocols: updatedProtocols },
+      'TOGGLE_FAVORITE',
+      { protocolId: id }
+    );
+    setAppState(updated);
   };
 
   // Live session handlers
   const handleEndSession = (caloriesBurned: number) => {
-    setBurnSynced((prev) => prev + caloriesBurned);
+    const updatedBurn = appState.burnSynced + caloriesBurned;
+    const updated = saveUserAppStateOptimistic(
+      { ...appState, burnSynced: updatedBurn },
+      'END_WORKOUT_SESSION',
+      { caloriesBurned }
+    );
+    setAppState(updated);
     setActiveTab('diary');
     showToast(`Workout completed! +${caloriesBurned} kcal added to Burn Synced`);
+
+    recordUserActivity({
+      userId: activeUser.uid,
+      userName: activeUser.displayName || 'Cult Athlete',
+      userEmail: activeUser.email,
+      actionType: 'WORKOUT_COMPLETE',
+      title: 'Completed Workout Protocol',
+      description: `Finished ${activeProtocol ? activeProtocol.title : 'Live Session'} (+${caloriesBurned} kcal burned)`,
+      metrics: { burnKcal: caloriesBurned },
+    });
   };
 
   return (
@@ -152,11 +312,14 @@ export default function App() {
         {/* Sticky Header */}
         <Header
           activeTab={activeTab}
-          streakDays={analyticsData.athlete.streakDays}
-          avatarUrl={analyticsData.athlete.avatarUrl}
+          streakDays={appState.analyticsData.athlete.streakDays}
+          avatarUrl={appState.analyticsData.athlete.avatarUrl}
           onAvatarClick={() => setActiveTab('progress')}
           onWorkspaceClick={() => setActiveTab('workspace')}
+          onScaleMonitorClick={() => setIsScaleMonitorOpen(true)}
+          onAdminHubClick={() => setIsAdminHubOpen(true)}
           isWorkspaceConnected={isWorkspaceConnected}
+          isAdmin={isAdmin}
         />
 
         {/* Main Content Area */}
@@ -164,14 +327,14 @@ export default function App() {
           {(activeTab === 'diary' || activeTab === 'today') && (
             <DiaryView
               currentDate={getFormattedDate()}
-              cycleNumber={cycleNumber}
+              cycleNumber={12}
               onPrevDay={handlePrevDay}
               onNextDay={handleNextDay}
-              dailyGoal={dailyGoal}
-              burnSynced={burnSynced}
-              mealSections={mealSections}
-              waterMl={waterMl}
-              waterGoalMl={waterGoalMl}
+              dailyGoal={appState.dailyGoal}
+              burnSynced={appState.burnSynced}
+              mealSections={appState.mealSections}
+              waterMl={appState.waterMl}
+              waterGoalMl={appState.waterGoalMl}
               onAddWater={handleAddWater}
               onSetCustomWater={handleSetCustomWater}
               onOpenQuickLog={handleOpenQuickLog}
@@ -182,7 +345,7 @@ export default function App() {
 
           {activeTab === 'workouts' && (
             <WorkoutsView
-              protocols={protocols}
+              protocols={appState.protocols}
               onStartWorkout={handleStartWorkout}
               onToggleFavorite={handleToggleFavorite}
             />
@@ -198,21 +361,24 @@ export default function App() {
 
           {activeTab === 'progress' && (
             <ProgressView
-              data={analyticsData}
+              data={appState.analyticsData}
               onOpenShareReport={() => setIsShareReportOpen(true)}
-              onOpenSettings={() => showToast('Telemetry settings synced with Apple Health & Wearables')}
+              onOpenSettings={() => setIsScaleMonitorOpen(true)}
               onOpenWorkspace={() => setActiveTab('workspace')}
+              onOpenAdminHub={() => setIsAdminHubOpen(true)}
+              isAdmin={isAdmin}
+              onAdminLoginToggle={isAdmin ? handleSwitchToRegularUser : handleSwitchToAdmin}
             />
           )}
 
           {activeTab === 'workspace' && (
             <WorkspaceHub
               currentDate={getFormattedDate()}
-              mealSections={mealSections}
-              activeCalories={burnSynced}
-              waterMl={waterMl}
-              analyticsData={analyticsData}
-              protocols={protocols}
+              mealSections={appState.mealSections}
+              activeCalories={appState.burnSynced}
+              waterMl={appState.waterMl}
+              analyticsData={appState.analyticsData}
+              protocols={appState.protocols}
             />
           )}
         </main>
@@ -221,6 +387,22 @@ export default function App() {
         <BottomNav activeTab={activeTab} onChangeTab={setActiveTab} />
 
         {/* Modals */}
+        <AdminUserActivityHub
+          isOpen={isAdminHubOpen}
+          onClose={() => setIsAdminHubOpen(false)}
+          adminEmail={activeUser.email}
+          isAdmin={isAdmin}
+          onAuthenticateAdmin={handleSwitchToAdmin}
+        />
+
+        <ScaleMonitorModal
+          isOpen={isScaleMonitorOpen}
+          onClose={() => setIsScaleMonitorOpen(false)}
+          currentState={appState}
+          onStateUpdate={(next) => setAppState(next)}
+          userEmail={activeUser.email}
+        />
+
         <QuickLogModal
           isOpen={isQuickLogOpen}
           onClose={() => setIsQuickLogOpen(false)}
@@ -242,7 +424,7 @@ export default function App() {
         <ShareReportModal
           isOpen={isShareReportOpen}
           onClose={() => setIsShareReportOpen(false)}
-          data={analyticsData}
+          data={appState.analyticsData}
         />
 
         {/* Toast Notification */}

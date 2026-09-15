@@ -7,7 +7,10 @@ interface HeaderProps {
   avatarUrl?: string;
   onAvatarClick?: () => void;
   onWorkspaceClick?: () => void;
+  onScaleMonitorClick?: () => void;
+  onAdminHubClick?: () => void;
   isWorkspaceConnected?: boolean;
+  isAdmin?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -16,7 +19,10 @@ export const Header: React.FC<HeaderProps> = ({
   avatarUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80',
   onAvatarClick,
   onWorkspaceClick,
+  onScaleMonitorClick,
+  onAdminHubClick,
   isWorkspaceConnected = false,
+  isAdmin = false,
 }) => {
   const getSubTitle = () => {
     switch (activeTab) {
@@ -68,8 +74,30 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Streak Badge, Workspace Button & Avatar */}
-      <div className="flex items-center gap-2">
+      {/* Streak Badge, Workspace Button, 1M Scale & Avatar */}
+      <div className="flex items-center gap-1 sm:gap-2">
+        {/* Admin Live Activity Hub Button (Visible only to Super Admin aryansharma009009@gmail.com) */}
+        {isAdmin && onAdminHubClick && (
+          <button
+            onClick={onAdminHubClick}
+            title="Super Admin: Live User Activity & Telemetry (aryansharma009009@gmail.com)"
+            className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-mono font-bold hover:bg-amber-100 transition-colors shadow-2xs"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+            <span>ADMIN LIVE</span>
+          </button>
+        )}
+
+        {/* 1M Scale Engine Monitor Pill */}
+        <button
+          onClick={onScaleMonitorClick}
+          title="1M Scale Engine: 60 FPS, 0ms Optimistic UI & Isolated Partition"
+          className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-[10px] font-mono font-medium hover:bg-emerald-100 transition-colors shadow-2xs"
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span className="font-bold">1M: 60FPS</span>
+        </button>
+
         <button
           onClick={onWorkspaceClick}
           title="Google Workspace (Drive, Sheets, Calendar, Contacts, Gmail)"
@@ -86,7 +114,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </button>
 
-        <div className="px-2 py-1 rounded-full bg-[#F2F2F2] border border-[#E5E5E5] text-[11px] font-medium text-[#242424] flex items-center gap-1 shadow-2xs">
+        <div className="hidden sm:flex px-2 py-1 rounded-full bg-[#F2F2F2] border border-[#E5E5E5] text-[11px] font-medium text-[#242424] items-center gap-1 shadow-2xs">
           <span className="w-1.5 h-1.5 rounded-full bg-[#242424]"></span>
           <span>{getStreakLabel()}</span>
         </div>
