@@ -19,12 +19,14 @@ interface ProgressViewProps {
   data: AnalyticsData;
   onOpenShareReport: () => void;
   onOpenSettings?: () => void;
+  onOpenWorkspace?: () => void;
 }
 
 export const ProgressView: React.FC<ProgressViewProps> = ({
   data,
   onOpenShareReport,
   onOpenSettings,
+  onOpenWorkspace,
 }) => {
   const [activeHoverWeek, setActiveHoverWeek] = useState<number | null>(null);
 
@@ -494,8 +496,19 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         </div>
       </div>
 
-      {/* Share Pulse Report Button */}
-      <div className="pt-1">
+      {/* Share & Workspace Buttons */}
+      <div className="pt-1 space-y-2">
+        <button
+          onClick={onOpenWorkspace}
+          id="btn-workspace-sync"
+          className="w-full py-3 px-4 bg-white hover:bg-[#F2F2F2] border border-[#242424] text-[#242424] font-display font-semibold text-xs tracking-wider uppercase rounded-xl flex items-center justify-center gap-2 transition-colors shadow-2xs"
+        >
+          <span className="w-4 h-4 rounded-full bg-[#242424] text-white text-[9px] flex items-center justify-center font-bold">
+            G
+          </span>
+          <span>Google Workspace Hub (Drive, Sheets, Calendar)</span>
+        </button>
+
         <button
           onClick={onOpenShareReport}
           id="btn-share-report"

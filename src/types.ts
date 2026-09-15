@@ -1,4 +1,4 @@
-export type NavTab = 'today' | 'workouts' | 'diary' | 'live' | 'progress';
+export type NavTab = 'today' | 'workouts' | 'diary' | 'live' | 'progress' | 'workspace';
 
 export interface MacroData {
   current: number;

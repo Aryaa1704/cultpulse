@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavTab, MealItem, MealSection, WorkoutProtocol, AnalyticsData } from './types';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
@@ -6,15 +6,26 @@ import { DiaryView } from './components/DiaryView';
 import { WorkoutsView } from './components/WorkoutsView';
 import { LiveSessionView } from './components/LiveSessionView';
 import { ProgressView } from './components/ProgressView';
+import { WorkspaceHub } from './components/WorkspaceHub';
 import { QuickLogModal } from './components/QuickLogModal';
 import { BarcodeModal } from './components/BarcodeModal';
 import { AIFormModal } from './components/AIFormModal';
 import { ShareReportModal } from './components/ShareReportModal';
 import { initialMealSections, workoutProtocols, mockAnalyticsData } from './data/mockData';
+import { initAuth } from './services/googleAuth';
 
 export default function App() {
   // Navigation
   const [activeTab, setActiveTab] = useState<NavTab>('diary');
+  const [isWorkspaceConnected, setIsWorkspaceConnected] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = initAuth(
+      () => setIsWorkspaceConnected(true),
+      () => setIsWorkspaceConnected(false)
+    );
+    return () => unsubscribe();
+  }, []);
 
   // Diary Date State
   const [dayOffset, setDayOffset] = useState(0);
@@ -144,6 +155,8 @@ export default function App() {
           streakDays={analyticsData.athlete.streakDays}
           avatarUrl={analyticsData.athlete.avatarUrl}
           onAvatarClick={() => setActiveTab('progress')}
+          onWorkspaceClick={() => setActiveTab('workspace')}
+          isWorkspaceConnected={isWorkspaceConnected}
         />
 
         {/* Main Content Area */}
@@ -163,6 +176,7 @@ export default function App() {
               onSetCustomWater={handleSetCustomWater}
               onOpenQuickLog={handleOpenQuickLog}
               onOpenBarcode={() => setIsBarcodeOpen(true)}
+              onOpenWorkspace={() => setActiveTab('workspace')}
             />
           )}
 
@@ -187,6 +201,18 @@ export default function App() {
               data={analyticsData}
               onOpenShareReport={() => setIsShareReportOpen(true)}
               onOpenSettings={() => showToast('Telemetry settings synced with Apple Health & Wearables')}
+              onOpenWorkspace={() => setActiveTab('workspace')}
+            />
+          )}
+
+          {activeTab === 'workspace' && (
+            <WorkspaceHub
+              currentDate={getFormattedDate()}
+              mealSections={mealSections}
+              activeCalories={burnSynced}
+              waterMl={waterMl}
+              analyticsData={analyticsData}
+              protocols={protocols}
             />
           )}
         </main>

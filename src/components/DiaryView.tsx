@@ -31,6 +31,7 @@ interface DiaryViewProps {
   onSetCustomWater: () => void;
   onOpenQuickLog: (sectionId?: string) => void;
   onOpenBarcode: () => void;
+  onOpenWorkspace?: () => void;
 }
 
 export const DiaryView: React.FC<DiaryViewProps> = ({
@@ -47,6 +48,7 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
   onSetCustomWater,
   onOpenQuickLog,
   onOpenBarcode,
+  onOpenWorkspace,
 }) => {
   // Calculate total food logged
   const totalFoodLogged = mealSections.reduce((acc, sec) => acc + sec.calories, 0);
@@ -251,6 +253,30 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
           <span className="font-display font-bold text-base text-[#1B1C1C]">+400</span>
           <div className="text-[10px] font-mono text-[#767676] uppercase">KCAL</div>
         </div>
+      </div>
+
+      {/* Google Workspace Cloud Sync Card */}
+      <div className="bg-white border border-[#E5E5E5] rounded-xl p-3.5 flex items-center justify-between shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-[#242424] text-white flex items-center justify-center font-bold text-xs">
+            G
+          </div>
+          <div>
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className="font-semibold text-[#1B1C1C]">Google Workspace Hub</span>
+              <span className="px-1.5 py-0.2 bg-[#F2F2F2] text-[9px] font-mono rounded-xs text-[#767676]">
+                5 SERVICES
+              </span>
+            </div>
+            <div className="text-[11px] text-[#767676]">Drive • Sheets • Calendar • Contacts • Gmail</div>
+          </div>
+        </div>
+        <button
+          onClick={onOpenWorkspace}
+          className="py-1.5 px-2.5 bg-[#F2F2F2] hover:bg-[#242424] hover:text-white rounded-lg text-xs font-semibold text-[#242424] transition-colors"
+        >
+          Open Sync
+        </button>
       </div>
 
       {/* Meal Timeline Section */}
