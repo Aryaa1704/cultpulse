@@ -1,5 +1,12 @@
 import { AnalyticsData, MealSection, WorkoutProtocol, Drill } from '../types';
 
+export const emptyMealSections: MealSection[] = [
+  { id: 'breakfast', name: 'Breakfast', calories: 0, carbs: 0, protein: 0, fats: 0, items: [] },
+  { id: 'lunch', name: 'Lunch', calories: 0, carbs: 0, protein: 0, fats: 0, items: [] },
+  { id: 'dinner', name: 'Dinner', calories: 0, carbs: 0, protein: 0, fats: 0, items: [], isPending: true },
+  { id: 'snacks', name: 'Snacks', calories: 0, carbs: 0, protein: 0, fats: 0, items: [] },
+];
+
 export const initialMealSections: MealSection[] = [
   {
     id: 'breakfast',

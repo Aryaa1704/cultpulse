@@ -37,74 +37,6 @@ interface FoodAnalysisResult {
   source: 'gemini-vision' | 'nutrition-engine';
 }
 
-// Fallback high-accuracy analysis for Puri Sabzi Thali and Indian platters
-function getFallbackPuriSabziAnalysis(): FoodAnalysisResult {
-  return {
-    mealName: 'Puri Sabzi Thali (with Aloo Matar Sabzi, Achar & Salad)',
-    dishType: 'North Indian Festive / Breakfast Thali',
-    totalCalories: 920,
-    totalProtein: 21.0,
-    totalCarbs: 132.0,
-    totalFats: 42.5,
-    totalFiber: 8.5,
-    confidence: '97.8%',
-    items: [
-      {
-        id: 'item-puri',
-        name: 'Puri (Poori) - Fried Whole Wheat Puffs',
-        quantityDescription: '~4-5 medium puris (~160g)',
-        calories: 580,
-        protein: 13.5,
-        carbs: 82.0,
-        fats: 26.0,
-        fiber: 4.2,
-        notes: 'Deep fried in vegetable oil. Primary contributor to total calories and lipid content.',
-      },
-      {
-        id: 'item-sabzi',
-        name: 'Aloo Matar / Aloo Gravy Sabzi',
-        quantityDescription: '1 full katori / bowl (~250-280g)',
-        calories: 275,
-        protein: 6.2,
-        carbs: 43.0,
-        fats: 12.0,
-        fiber: 3.5,
-        notes: 'Spiced potato curry prepared with tomato-onion gravy and mustard/vegetable oil.',
-      },
-      {
-        id: 'item-achar',
-        name: 'Mixed Mango / Lime Pickle (Achar)',
-        quantityDescription: '~20-25g (1-2 tablespoons)',
-        calories: 45,
-        protein: 0.5,
-        carbs: 3.0,
-        fats: 4.2,
-        fiber: 0.4,
-        notes: 'Oil-preserved Indian condiment; elevates sodium and flavor profile.',
-      },
-      {
-        id: 'item-salad',
-        name: 'Fresh Salad (Sliced Onions & Green Chilli)',
-        quantityDescription: '~50-60g raw',
-        calories: 20,
-        protein: 0.8,
-        carbs: 4.0,
-        fats: 0.3,
-        fiber: 0.4,
-        notes: 'Raw onion rings and whole hari mirch; high in vitamin C and antioxidants.',
-      },
-    ],
-    summary:
-      'Identified a classic Indian Puri Sabzi Thali containing roughly 4-5 golden fried puris accompanied by rich potato-gravy sabzi, spiced achar, and fresh onion rings with green chilli. Due to the deep-frying process of the puris and oil in the curry, the total energy density of this plate is ~920 kcal (ranging from 850 to 1,000 kcal depending on oil absorption).',
-    healthTip:
-      'For weight management or cutting: Reduce to 2 puris and request or add a high-protein side like boiled eggs, 100g low-fat paneer, or sprouted moong salad to achieve a 30g+ protein target.',
-    macronutrientInsight:
-      'High in carbohydrates (~132g) and fats (~42g). Moderate protein (~21g). Digestible energy is rapid due to refined/fried starch.',
-    dietaryFlags: ['Vegetarian', 'High Calorie', 'Fried / High Fat', 'Rich in Starch'],
-    source: 'nutrition-engine',
-  };
-}
-
 async function startServer() {
   const app = express();
 
@@ -225,7 +157,7 @@ Respond strictly with valid JSON conforming to this schema:
 }`;
 
       // Try candidate models in order of stability and performance
-      const candidateModels = ['gemini-3.6-flash', 'gemini-3.8-flash', 'gemini-flash-latest'];
+      const candidateModels = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-3.1-pro-preview'];
       let lastError: any = null;
       let responseText: string | null = null;
       let usedModel: string = candidateModels[0];

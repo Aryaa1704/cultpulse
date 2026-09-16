@@ -1,12 +1,13 @@
 // CultPulse 1M Scale Engine: High-Throughput User State, 0ms Optimistic UI & Sync Manager
-import { MealSection, WorkoutProtocol, AnalyticsData } from '../types';
-import { initialMealSections, workoutProtocols, mockAnalyticsData } from '../data/mockData';
+import { MealSection, WorkoutProtocol, AnalyticsData, DietaryPreference } from '../types';
+import { emptyMealSections, workoutProtocols, mockAnalyticsData } from '../data/mockData';
 import { sanitizeInput } from './securityEngine';
 
 export interface UserAppState {
   userId: string;
   userEmail?: string | null;
   displayName?: string | null;
+  dietaryPreference?: DietaryPreference;
   dayOffset: number;
   dailyGoal: number;
   burnSynced: number;
@@ -560,17 +561,17 @@ export function loadUserAppState(userId: string, email?: string | null, displayN
     console.warn('Failed to parse cached user state:', err);
   }
 
-  // 3. Fallback Initial Blueprint
+  // 3. Fallback Initial Blueprint - Clean, unpolluted state for new users
   const initialData: UserAppState = {
     userId,
     userEmail: email || null,
     displayName: resolvedName,
     dayOffset: 0,
     dailyGoal: 2200,
-    burnSynced: 400,
-    waterMl: 1750,
+    burnSynced: 0,
+    waterMl: 0,
     waterGoalMl: 3000,
-    mealSections: JSON.parse(JSON.stringify(initialMealSections)),
+    mealSections: JSON.parse(JSON.stringify(emptyMealSections)),
     protocols: JSON.parse(JSON.stringify(workoutProtocols)),
     analyticsData: {
       ...mockAnalyticsData,

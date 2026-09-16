@@ -102,6 +102,8 @@ export interface AnalyticsData {
 
 export type UserGoal = 'muscle_building' | 'fat_loss' | 'diet_nutrition' | 'endurance_hiit' | 'general_fitness';
 
+export type DietaryPreference = 'veg' | 'non_veg' | 'eggetarian';
+
 export interface UserGoalConfig {
   id: UserGoal;
   title: string;
