@@ -226,6 +226,37 @@ export const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
                 key={ex.id}
                 className="p-3.5 bg-white border border-[#E5E5E5] hover:border-[#242424] rounded-xl transition-all shadow-2xs flex flex-col justify-between group"
               >
+                {/* Exercise Movement Video Thumbnail Banner */}
+                <div
+                  onClick={() => setVideoModalExercise(ex)}
+                  className="relative aspect-16/9 w-full rounded-xl overflow-hidden bg-zinc-900 mb-3 group/thumb cursor-pointer border border-zinc-200 shadow-xs"
+                  title="Click to play video demonstration"
+                >
+                  <img
+                    src={`https://img.youtube.com/vi/${ex.videoEmbedId}/mqdefault.jpg`}
+                    alt={ex.name}
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = ex.imageUrl;
+                    }}
+                    className="w-full h-full object-cover group-hover/thumb:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent flex items-center justify-center">
+                    <div className="w-11 h-11 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-lg group-hover/thumb:scale-110 transition-transform">
+                      <Play size={16} fill="currentColor" className="ml-0.5" />
+                    </div>
+                  </div>
+                  <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between text-white text-[10px] font-mono pointer-events-none">
+                    <span className="bg-black/70 backdrop-blur-xs px-2 py-0.5 rounded">
+                      {ex.defaultSets} sets × {ex.defaultRepsOrDuration}
+                    </span>
+                    <span className="bg-amber-400 text-black font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                      <Play size={9} fill="currentColor" />
+                      <span>WATCH VIDEO</span>
+                    </span>
+                  </div>
+                </div>
+
                 <div className="space-y-2">
                   <div className="flex items-start justify-between gap-2">
                     <div>

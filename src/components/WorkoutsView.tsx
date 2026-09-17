@@ -288,10 +288,37 @@ export const WorkoutsView: React.FC<WorkoutsViewProps> = ({
                       : 'hover:bg-[#FBF9F9] dark:hover:bg-[#202124] border border-transparent'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-1 flex-1">
+                  <div className="flex items-start gap-3">
+                    {/* Exercise Video & Movement Thumbnail */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setVideoModalExercise(ex);
+                      }}
+                      className="relative w-16 h-16 rounded-xl overflow-hidden bg-zinc-900 shrink-0 border border-[#E5E5E5] dark:border-zinc-800 group/thumb cursor-pointer shadow-2xs"
+                      title="Click to watch exercise video"
+                    >
+                      <img
+                        src={`https://img.youtube.com/vi/${ex.videoEmbedId}/mqdefault.jpg`}
+                        alt={ex.name}
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = ex.imageUrl;
+                        }}
+                        className="w-full h-full object-cover group-hover/thumb:scale-110 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-black/40 group-hover/thumb:bg-black/20 transition-colors flex items-center justify-center">
+                        <div className="w-6 h-6 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-md group-hover/thumb:scale-110 transition-transform">
+                          <Play size={10} fill="currentColor" className="ml-0.5" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-xs text-[#1B1C1C] dark:text-white">{ex.name}</span>
+                        <span className="font-bold text-xs text-[#1B1C1C] dark:text-white group-hover:text-amber-500 transition-colors">
+                          {ex.name}
+                        </span>
                         <span className="px-1.5 py-0.2 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-[9px] font-mono font-bold rounded-xs uppercase">
                           {ex.muscleGroup}
                         </span>

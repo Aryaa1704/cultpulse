@@ -18,9 +18,15 @@ import {
   Zap,
   Activity,
   CheckCircle2,
+  ExternalLink,
+  RefreshCw,
+  Maximize2,
 } from 'lucide-react';
 import { Drill, WorkoutProtocol } from '../types';
 import { liveDrills } from '../data/mockData';
+import { getCoachGender, setCoachGender, CoachGender } from '../services/coachPreference';
+import { ExerciseVideoModal } from './ExerciseVideoModal';
+import { ExerciseItem, comprehensiveExerciseDatabase } from '../data/exerciseDatabase';
 
 interface LiveSessionViewProps {
   currentProtocol?: WorkoutProtocol | null;
@@ -38,7 +44,6 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
   // Derive protocol-specific drills based on modality
   const dynamicDrills: Drill[] = useMemo(() => {
     const modality = currentProtocol?.modality || 'HIIT';
-    const protocolTitle = currentProtocol?.title || 'Protocol';
 
     if (modality === 'Dance') {
       return [
@@ -52,6 +57,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'LOW IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'gCzgc_RelBA',
+          femaleVideoEmbedId: 'ZWk19OVon2k',
+          startSeconds: 5,
         },
         {
           id: 'dance-2',
@@ -63,6 +71,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'MODERATE',
           imageUrl:
             'https://images.unsplash.com/photo-1547153760-18fc86324498?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'oa_82zS7d-0',
+          femaleVideoEmbedId: 'm4n07nIqKFc',
+          startSeconds: 6,
         },
         {
           id: 'dance-3',
@@ -74,6 +85,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'MODERATE',
           imageUrl:
             'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'ZWk19OVon2k',
+          femaleVideoEmbedId: '7P2r6Yp8G5I',
+          startSeconds: 5,
         },
         {
           id: 'dance-4',
@@ -85,6 +99,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'HIGH IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'gCzgc_RelBA',
+          femaleVideoEmbedId: 'ZWk19OVon2k',
+          startSeconds: 8,
         },
         {
           id: 'dance-5',
@@ -96,6 +113,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'MODERATE',
           imageUrl:
             'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'oa_82zS7d-0',
+          femaleVideoEmbedId: 'm4n07nIqKFc',
+          startSeconds: 6,
         },
         {
           id: 'dance-6',
@@ -107,6 +127,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'LOW IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'sTANio_2E0Q',
+          femaleVideoEmbedId: 'sTANio_2E0Q',
+          startSeconds: 5,
         },
       ];
     }
@@ -123,6 +146,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'HIGH IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'bEv6CCg2BC8',
+          femaleVideoEmbedId: 'aclHkVaku9U',
+          startSeconds: 6,
         },
         {
           id: 'str-2',
@@ -134,6 +160,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'MODERATE',
           imageUrl:
             'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'JCXUYuzwNrM',
+          femaleVideoEmbedId: 'UItWltVZZmE',
+          startSeconds: 8,
         },
         {
           id: 'str-3',
@@ -145,6 +174,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'HIGH IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: '2yjwXTZQDDI',
+          femaleVideoEmbedId: 'qEwKCR5JCog',
+          startSeconds: 6,
         },
         {
           id: 'str-4',
@@ -156,6 +188,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'MODERATE',
           imageUrl:
             'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'roCP6wCXPqo',
+          femaleVideoEmbedId: '2m8VpS5s7U0',
+          startSeconds: 5,
         },
         {
           id: 'str-5',
@@ -167,6 +202,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'MODERATE',
           imageUrl:
             'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'IODxDxX7oi4',
+          femaleVideoEmbedId: 'W4sF5tWvI_w',
+          startSeconds: 6,
         },
         {
           id: 'str-6',
@@ -178,6 +216,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'LOW IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'pSHjTRCQxIw',
+          femaleVideoEmbedId: 'ASdvN_XEl_c',
+          startSeconds: 5,
         },
       ];
     }
@@ -194,6 +235,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'LOW IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'g_tea8ZNk5A',
+          femaleVideoEmbedId: 'sTANio_2E0Q',
+          startSeconds: 5,
         },
         {
           id: 'yoga-2',
@@ -205,6 +249,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'LOW IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'g_tea8ZNk5A',
+          femaleVideoEmbedId: 'sTANio_2E0Q',
+          startSeconds: 15,
         },
         {
           id: 'yoga-3',
@@ -216,6 +263,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'LOW IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: '2Y24b4Oq3gY',
+          femaleVideoEmbedId: 'sTANio_2E0Q',
+          startSeconds: 6,
         },
         {
           id: 'yoga-4',
@@ -227,6 +277,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'LOW IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1552196563-552361a45935?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'g_tea8ZNk5A',
+          femaleVideoEmbedId: 'sTANio_2E0Q',
+          startSeconds: 25,
         },
         {
           id: 'yoga-5',
@@ -238,6 +291,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'LOW IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'g_tea8ZNk5A',
+          femaleVideoEmbedId: 'sTANio_2E0Q',
+          startSeconds: 35,
         },
         {
           id: 'yoga-6',
@@ -249,6 +305,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           impact: 'LOW IMPACT',
           imageUrl:
             'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&auto=format&fit=crop&q=80',
+          videoEmbedId: 'g_tea8ZNk5A',
+          femaleVideoEmbedId: 'sTANio_2E0Q',
+          startSeconds: 45,
         },
       ];
     }
@@ -267,6 +326,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
             impact: 'HIGH IMPACT',
             imageUrl:
               'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&auto=format&fit=crop&q=80',
+            videoEmbedId: 'OAJ_J3EZrx8',
+            femaleVideoEmbedId: '8opcQdC-5gk',
+            startSeconds: 6,
           },
           {
             id: 'hiit-2',
@@ -278,6 +340,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
             impact: 'HIGH IMPACT',
             imageUrl:
               'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&auto=format&fit=crop&q=80',
+            videoEmbedId: 'L219ltL15zk',
+            femaleVideoEmbedId: 'M0u_QW_v7nI',
+            startSeconds: 6,
           },
           {
             id: 'hiit-3',
@@ -289,6 +354,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
             impact: 'HIGH IMPACT',
             imageUrl:
               'https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=400&auto=format&fit=crop&q=80',
+            videoEmbedId: '1ExU8CRl4eU',
+            femaleVideoEmbedId: '1B_mZ1h0l4M',
+            startSeconds: 6,
           },
           {
             id: 'hiit-4',
@@ -300,6 +368,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
             impact: 'HIGH IMPACT',
             imageUrl:
               'https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=400&auto=format&fit=crop&q=80',
+            videoEmbedId: 'de_tv0WjK54',
+            femaleVideoEmbedId: 'nmwgirgXLYM',
+            startSeconds: 5,
           },
           {
             id: 'hiit-5',
@@ -311,6 +382,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
             impact: 'MODERATE',
             imageUrl:
               'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&auto=format&fit=crop&q=80',
+            videoEmbedId: 'roCP6wCXPqo',
+            femaleVideoEmbedId: '2m8VpS5s7U0',
+            startSeconds: 5,
           },
           {
             id: 'hiit-6',
@@ -322,6 +396,9 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
             impact: 'LOW IMPACT',
             imageUrl:
               'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&auto=format&fit=crop&q=80',
+            videoEmbedId: 'pSHjTRCQxIw',
+            femaleVideoEmbedId: 'ASdvN_XEl_c',
+            startSeconds: 5,
           },
         ];
   }, [currentProtocol]);
@@ -336,6 +413,28 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
   const [totalSecondsRemaining, setTotalSecondsRemaining] = useState(totalDuration);
   const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
+
+  // Coach Gender preference & video controls
+  const [coachGender, setLocalCoachGender] = useState<CoachGender>(getCoachGender());
+  const [isAudioMuted, setIsAudioMuted] = useState(true);
+  const [iframeKey, setIframeKey] = useState(0);
+  const [selectedExerciseForModal, setSelectedExerciseForModal] = useState<ExerciseItem | null>(null);
+
+  useEffect(() => {
+    const handleGenderChange = (e: any) => {
+      if (e.detail?.gender) {
+        setLocalCoachGender(e.detail.gender);
+      }
+    };
+    window.addEventListener('cultpulse:coach-gender-change', handleGenderChange);
+    return () => window.removeEventListener('cultpulse:coach-gender-change', handleGenderChange);
+  }, []);
+
+  const handleToggleCoachGender = (newGender: CoachGender) => {
+    setLocalCoachGender(newGender);
+    setCoachGender(newGender);
+    setIframeKey((k) => k + 1);
+  };
 
   // Dynamic real-time telemetry starting at authentic values:
   // Heart rate starts at warmup rate (115 BPM) and rises naturally with intervals
@@ -360,6 +459,24 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
 
   const currentDrill: Drill = dynamicDrills[currentDrillIndex] || dynamicDrills[0];
   const nextDrill: Drill | undefined = dynamicDrills[currentDrillIndex + 1];
+
+  // Resolve current active video embed ID based on drill and selected coach gender
+  const activeVideoId = useMemo(() => {
+    if (coachGender === 'female' && currentDrill.femaleVideoEmbedId) {
+      return currentDrill.femaleVideoEmbedId;
+    }
+    if (currentDrill.videoEmbedId) {
+      return currentDrill.videoEmbedId;
+    }
+    if (coachGender === 'female' && currentProtocol?.femaleVideoEmbedId) {
+      return currentProtocol.femaleVideoEmbedId;
+    }
+    return currentProtocol?.videoEmbedId || 'OAJ_J3EZrx8';
+  }, [coachGender, currentDrill, currentProtocol]);
+
+  const startSeconds = currentDrill.startSeconds || currentProtocol?.startSeconds || 6;
+  const embedUrl = `https://www.youtube.com/embed/${activeVideoId}?start=${startSeconds}&autoplay=${isPlaying ? 1 : 0}&mute=${isAudioMuted ? 1 : 0}&loop=1&playlist=${activeVideoId}&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1`;
+  const hqThumbnail = `https://img.youtube.com/vi/${activeVideoId}/hqdefault.jpg`;
 
   // Timer interval simulation
   useEffect(() => {
@@ -441,6 +558,38 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
     setSecondsRemaining((prev) => Math.max(1, prev - 10));
   };
 
+  const handleOpenDetailedModal = () => {
+    const matched = comprehensiveExerciseDatabase.find(
+      (e) => e.name.toLowerCase().includes(currentDrill.name.toLowerCase()) || currentDrill.name.toLowerCase().includes(e.name.toLowerCase())
+    );
+    if (matched) {
+      setSelectedExerciseForModal(matched);
+    } else {
+      setSelectedExerciseForModal({
+        id: currentDrill.id,
+        name: currentDrill.name,
+        muscleGroup: 'Full Body',
+        category: 'Strength',
+        targetMuscle: 'Prime Movers & Core',
+        equipment: currentDrill.load || 'Bodyweight',
+        difficulty: 'Intermediate',
+        defaultSets: currentDrill.sets,
+        defaultRepsOrDuration: `${currentDrill.workSeconds}s`,
+        caloriesBurnPerHour: 420,
+        videoEmbedId: activeVideoId,
+        femaleVideoEmbedId: currentDrill.femaleVideoEmbedId,
+        startSeconds: startSeconds,
+        imageUrl: currentDrill.imageUrl,
+        description: `High-intensity movement drill designed to build cardiovascular resilience, muscular endurance, and neuromuscular coordination.`,
+        formCues: [
+          'Maintain a braced core with neutral lumbar spine alignment.',
+          'Control both concentric driving phase and eccentric lowering tempo.',
+          'Maintain rhythmic breathing: exhale during exertion, inhale during recovery.',
+        ],
+      });
+    }
+  };
+
   return (
     <div className="space-y-4 pb-28 animate-in fade-in duration-200">
       {/* Session Title & Modality Header */}
@@ -460,14 +609,30 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           </div>
         </div>
 
-        <button
-          onClick={() => onEndSession(Math.round(activeCalories))}
-          id="btn-header-end-workout"
-          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-xs"
-        >
-          <Square size={13} fill="currentColor" />
-          <span>End Workout</span>
-        </button>
+        {/* Coach Gender Switcher in Top Bar */}
+        <div className="flex items-center gap-1.5 bg-white dark:bg-[#1C1C1E] p-1 rounded-xl border border-[#E5E5E5] dark:border-neutral-800 shadow-2xs">
+          <span className="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 px-1 hidden sm:inline">Trainer:</span>
+          <button
+            onClick={() => handleToggleCoachGender('male')}
+            className={`px-2 py-1 rounded-lg text-xs font-mono font-bold flex items-center gap-1 transition-colors ${
+              coachGender === 'male'
+                ? 'bg-amber-400 text-black shadow-xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <span>👨 Male</span>
+          </button>
+          <button
+            onClick={() => handleToggleCoachGender('female')}
+            className={`px-2 py-1 rounded-lg text-xs font-mono font-bold flex items-center gap-1 transition-colors ${
+              coachGender === 'female'
+                ? 'bg-amber-400 text-black shadow-xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white'
+            }`}
+          >
+            <span>👩 Female</span>
+          </button>
+        </div>
       </div>
 
       {/* Real-time Telemetry Strip (3 cards in 1 row) */}
@@ -516,44 +681,102 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
         </div>
       </div>
 
-      {/* Video Workout Stage - Dynamic based on current protocol */}
-      <div className="relative aspect-16/10 rounded-xl overflow-hidden bg-black border border-[#E5E5E5] dark:border-zinc-800 shadow-sm">
-        {/* Active workout image from protocol */}
-        <img
-          src={
-            currentDrill.imageUrl ||
-            currentProtocol?.thumbnailUrl ||
-            'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80'
-          }
-          alt={currentDrill.name}
-          className="w-full h-full object-cover brightness-90 contrast-105 transition-all duration-500"
-          referrerPolicy="no-referrer"
-        />
+      {/* Video Workout Stage - Interactive Video Stream Player */}
+      <div className="relative aspect-16/10 rounded-2xl overflow-hidden bg-black border border-[#E5E5E5] dark:border-zinc-800 shadow-md">
+        {isPlaying ? (
+          /* Live Streaming Video Iframe with Anti-Branding Crop */
+          <div className="relative w-full h-full overflow-hidden bg-black">
+            <iframe
+              key={`${activeVideoId}-${currentDrillIndex}-${iframeKey}-${isAudioMuted}`}
+              src={embedUrl}
+              title={`${currentDrill.name} Demonstration`}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+              className="absolute -top-[12%] -left-[2%] w-[104%] h-[124%] border-0 object-cover pointer-events-auto"
+            />
+          </div>
+        ) : (
+          /* Poster View when paused */
+          <div className="relative w-full h-full bg-black cursor-pointer group" onClick={() => setIsPlaying(true)}>
+            <img
+              src={hqThumbnail}
+              alt={currentDrill.name}
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = currentDrill.imageUrl;
+              }}
+              className="w-full h-full object-cover brightness-85 group-hover:scale-105 transition-transform duration-500"
+              referrerPolicy="no-referrer"
+            />
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex flex-col items-center justify-center gap-2">
+              <div className="w-14 h-14 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+                <Play size={24} fill="currentColor" className="ml-1" />
+              </div>
+              <span className="px-3 py-1 rounded-full bg-black/80 backdrop-blur-md text-xs font-mono font-bold text-amber-300 border border-amber-400/30">
+                Click to Resume {coachGender === 'female' ? 'Female' : 'Male'} Video Stream
+              </span>
+            </div>
+          </div>
+        )}
 
-        {/* Dark overlay gradients */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/60 pointer-events-none"></div>
-
-        {/* Top Badges */}
-        <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] font-medium font-mono">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-            <span>{currentDrill.name}</span>
+        {/* Top Overlay Strip (Completely covers YouTube title & channel brand) */}
+        <div className="absolute top-0 left-0 right-0 p-3 bg-gradient-to-b from-black via-black/80 to-transparent flex items-center justify-between pointer-events-none z-10">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+            <span className="text-xs font-display font-bold text-white tracking-wide">
+              {currentDrill.name}
+            </span>
+            <span className="px-2 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-[10px] font-mono text-amber-300 border border-white/20">
+              {coachGender === 'female' ? 'Female Coach' : 'Male Coach'}
+            </span>
           </div>
 
-          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] font-mono">
-            <Zap size={12} className="text-yellow-400" />
-            <span>{currentDrill.impact}</span>
+          <div className="flex items-center gap-1.5 pointer-events-auto">
+            <button
+              onClick={handleOpenDetailedModal}
+              title="Full Biomechanics & Form Analysis"
+              className="px-2.5 py-1 rounded-lg bg-black/80 hover:bg-black border border-white/20 text-white text-[11px] font-mono font-semibold flex items-center gap-1 transition-colors"
+            >
+              <Maximize2 size={12} />
+              <span className="hidden sm:inline">Biomechanics Cues</span>
+            </button>
           </div>
         </div>
 
-        {/* Audio Coach Cue Bar */}
-        <div className="absolute bottom-3 left-3 right-3">
-          <div className="px-3 py-2 rounded-lg bg-black/75 backdrop-blur-md border border-white/15 text-white/90 text-xs flex items-center justify-between">
-            <div className="flex items-center gap-2 truncate pr-2">
-              <Volume2 size={15} className="text-amber-400 shrink-0" />
-              <span className="font-mono text-[11px] truncate tracking-tight">{coachCue}</span>
-            </div>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+        {/* Bottom HUD Controls (Completely covers YouTube bottom corner logo & provides live toggles) */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black via-black/85 to-transparent flex items-center justify-between z-10 pointer-events-auto">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsAudioMuted(!isAudioMuted)}
+              title={isAudioMuted ? 'Unmute Video Audio' : 'Mute Video Audio'}
+              className="px-2.5 py-1 rounded-lg bg-black/80 hover:bg-black border border-white/20 text-[11px] font-mono text-zinc-200 hover:text-white flex items-center gap-1.5 transition-colors"
+            >
+              {isAudioMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+              <span>{isAudioMuted ? 'Unmute Drill' : 'Muted'}</span>
+            </button>
+
+            <button
+              onClick={() => setIframeKey((k) => k + 1)}
+              title="Reload Drill Video (Skips Intro)"
+              className="p-1.5 rounded-lg bg-black/80 hover:bg-black border border-white/20 text-zinc-300 hover:text-white transition-colors"
+            >
+              <RefreshCw size={13} />
+            </button>
+          </div>
+
+          {/* Audio Coach Cue Bar */}
+          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-black/80 border border-white/15 text-white/90 text-[11px] font-mono max-w-sm truncate">
+            <Volume2 size={13} className="text-amber-400 shrink-0" />
+            <span className="truncate">{coachCue}</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => handleToggleCoachGender(coachGender === 'male' ? 'female' : 'male')}
+              title="Switch between Male and Female coach video"
+              className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-500 text-black text-[11px] font-mono font-bold flex items-center gap-1 transition-colors shadow-xs"
+            >
+              <span>{coachGender === 'female' ? 'Switch to 👨 Male' : 'Switch to 👩 Female'}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -722,6 +945,15 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           <span className="text-[10px] text-[#767676] dark:text-neutral-400">+{Math.round(activeCalories)} kcal</span>
         </button>
       </div>
+
+      {/* Exercise Video Modal for Detailed Biomechanics Cues */}
+      {selectedExerciseForModal && (
+        <ExerciseVideoModal
+          exercise={selectedExerciseForModal}
+          isOpen={!!selectedExerciseForModal}
+          onClose={() => setSelectedExerciseForModal(null)}
+        />
+      )}
     </div>
   );
 };
