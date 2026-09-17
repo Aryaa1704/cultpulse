@@ -23,7 +23,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
     <nav
       id="bottom-nav"
       aria-label="Main Navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-t border-[#E5E5E5] dark:border-[#252628] px-2 py-2 max-w-xl mx-auto transition-colors"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-t border-[#E5E5E5] dark:border-[#252628] px-3 sm:px-6 py-2 max-w-5xl lg:max-w-6xl mx-auto transition-colors"
     >
       <div className="flex items-center justify-around">
         {tabs.map((tab) => {

@@ -14,26 +14,38 @@ import {
   CheckCircle,
   LifeBuoy,
 } from 'lucide-react';
-import { AnalyticsData } from '../types';
+import { AnalyticsData, DietaryPreference } from '../types';
 
 interface ProgressViewProps {
   data: AnalyticsData;
+  userEmail?: string | null;
+  userDisplayName?: string | null;
+  dietaryPreference?: DietaryPreference;
   onOpenShareReport: () => void;
   onOpenSettings?: () => void;
   onOpenWorkspace?: () => void;
   onOpenAdminHub?: () => void;
   onOpenSupport?: () => void;
+  onOpenDietaryModal?: () => void;
+  onOpenAuthModal?: () => void;
+  onSignOut?: () => void;
   isAdmin?: boolean;
   onAdminLoginToggle?: () => void;
 }
 
 export const ProgressView: React.FC<ProgressViewProps> = ({
   data,
+  userEmail,
+  userDisplayName,
+  dietaryPreference = 'veg',
   onOpenShareReport,
   onOpenSettings,
   onOpenWorkspace,
   onOpenAdminHub,
   onOpenSupport,
+  onOpenDietaryModal,
+  onOpenAuthModal,
+  onSignOut,
   isAdmin = false,
   onAdminLoginToggle,
 }) => {
@@ -72,50 +84,80 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         </div>
       </div>
 
-      {/* Athlete Card */}
-      <div className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-4 shadow-2xs flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <img
-            src={data.athlete.avatarUrl}
-            alt={data.athlete.name}
-            className="w-12 h-12 rounded-lg object-cover border border-[#E5E5E5] dark:border-neutral-700"
-            referrerPolicy="no-referrer"
-          />
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-display font-bold text-base text-[#1B1C1C] dark:text-neutral-100">
-                {data.athlete.name}
-              </span>
-              <span className="px-1.5 py-0.2 bg-[#F2F2F2] dark:bg-neutral-800 border border-[#E5E5E5] dark:border-neutral-700 text-[10px] font-mono font-semibold text-[#242424] dark:text-neutral-300 rounded-xs">
-                {data.athlete.level}
-              </span>
+      {/* Athlete Identity Card */}
+      <div className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-4 shadow-2xs space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img
+              src={data.athlete.avatarUrl}
+              alt={userDisplayName || data.athlete.name}
+              className="w-12 h-12 rounded-lg object-cover border border-[#E5E5E5] dark:border-neutral-700"
+              referrerPolicy="no-referrer"
+            />
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-display font-bold text-base text-[#1B1C1C] dark:text-neutral-100">
+                  {userDisplayName || (userEmail ? userEmail.split('@')[0] : data.athlete.name)}
+                </span>
+                <span className="px-1.5 py-0.2 bg-[#F2F2F2] dark:bg-neutral-800 border border-[#E5E5E5] dark:border-neutral-700 text-[10px] font-mono font-semibold text-[#242424] dark:text-neutral-300 rounded-xs">
+                  {userEmail ? 'VERIFIED' : 'GUEST'}
+                </span>
+              </div>
+              <div className="text-xs text-[#767676] dark:text-neutral-400">
+                {userEmail ? userEmail : 'Guest Session • Changes isolated locally'}
+              </div>
             </div>
-            <div className="text-xs text-[#767676] dark:text-neutral-400">
-              {data.athlete.streakDays}-Day Streak Active
-            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={onOpenSettings}
+              aria-label="Settings"
+              className="p-2 rounded-lg border border-[#E5E5E5] dark:border-neutral-700 hover:border-[#242424] dark:hover:border-neutral-400 text-[#4A4A4A] dark:text-neutral-300 transition-colors"
+            >
+              <Settings size={18} />
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {/* Admin Hub: Strictly visible ONLY to authorized Super Admin */}
-          {isAdmin && onOpenAdminHub && (
+        {/* Dietary Preference & Account Action Bar */}
+        <div className="pt-2 border-t border-[#F2F2F2] dark:border-neutral-800 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-[#767676] dark:text-neutral-400">Dietary Profile:</span>
             <button
-              onClick={onOpenAdminHub}
-              title="Super Admin: User Telemetry & Live Activity (Secured Console)"
-              className="px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 text-[11px] font-mono font-bold hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors flex items-center gap-1"
+              onClick={onOpenDietaryModal}
+              className="px-2 py-0.5 rounded-md bg-[#F2F2F2] dark:bg-neutral-800 font-semibold text-[#1B1C1C] dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-              <span>ADMIN HUB</span>
+              {dietaryPreference === 'veg'
+                ? '🥦 Vegetarian'
+                : dietaryPreference === 'eggetarian'
+                ? '🥚 Eggetarian'
+                : '🍗 Non-Vegetarian'}{' '}
+              (Change)
             </button>
-          )}
+          </div>
 
-          <button
-            onClick={onOpenSettings}
-            aria-label="Settings"
-            className="p-2 rounded-lg border border-[#E5E5E5] dark:border-neutral-700 hover:border-[#242424] dark:hover:border-neutral-400 text-[#4A4A4A] dark:text-neutral-300 transition-colors"
-          >
-            <Settings size={18} />
-          </button>
+          <div>
+            {userEmail ? (
+              onSignOut && (
+                <button
+                  onClick={onSignOut}
+                  className="text-red-600 dark:text-red-400 hover:underline font-medium text-[11px]"
+                >
+                  Sign Out
+                </button>
+              )
+            ) : (
+              onOpenAuthModal && (
+                <button
+                  onClick={onOpenAuthModal}
+                  className="text-blue-600 dark:text-blue-400 hover:underline font-semibold text-[11px]"
+                >
+                  Sign In / Create Account →
+                </button>
+              )
+            )}
+          </div>
         </div>
       </div>
 
@@ -558,33 +600,6 @@ export const ProgressView: React.FC<ProgressViewProps> = ({
         <p className="text-center text-[10px] text-[#767676] dark:text-neutral-400 font-mono mt-3">
           CultPulse Open Analytics • Zero paywalls • 100% unlocked forever
         </p>
-
-        {/* Discreet Super Admin Authentication Controls (Zero Email Leakage) */}
-        <div className="pt-2 text-center">
-          {isAdmin ? (
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-[10px] font-mono">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-              <span>Logged in as Super Admin (Verified System Owner)</span>
-              {onAdminLoginToggle && (
-                <button
-                  onClick={onAdminLoginToggle}
-                  className="underline hover:text-black ml-1 text-[9px] uppercase font-bold"
-                >
-                  Switch to Regular User
-                </button>
-              )}
-            </div>
-          ) : (
-            onAdminLoginToggle && (
-              <button
-                onClick={onAdminLoginToggle}
-                className="text-[10px] font-mono text-[#767676] hover:text-[#242424] underline transition-colors"
-              >
-                🔐 System Administrator Console (Passkey Protected)
-              </button>
-            )
-          )}
-        </div>
       </div>
     </div>
   );

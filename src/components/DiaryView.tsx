@@ -16,7 +16,7 @@ import {
   Sliders,
   Check,
 } from 'lucide-react';
-import { MealSection } from '../types';
+import { MealSection, DietaryPreference } from '../types';
 import { useAppSettings } from '../services/appSettingsContext';
 
 interface DiaryViewProps {
@@ -29,10 +29,13 @@ interface DiaryViewProps {
   mealSections: MealSection[];
   waterMl: number;
   waterGoalMl: number;
+  dietaryPreference?: DietaryPreference;
+  onStartWorkoutTab?: () => void;
   onAddWater: (amount: number) => void;
   onSetCustomWater: () => void;
   onOpenQuickLog: (sectionId?: string) => void;
   onOpenBarcode: () => void;
+  onOpenRecipeMaker?: () => void;
   onOpenWorkspace?: () => void;
 }
 
@@ -46,10 +49,13 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
   mealSections,
   waterMl,
   waterGoalMl,
+  dietaryPreference = 'veg',
+  onStartWorkoutTab,
   onAddWater,
   onSetCustomWater,
   onOpenQuickLog,
   onOpenBarcode,
+  onOpenRecipeMaker,
   onOpenWorkspace,
 }) => {
   const { t } = useAppSettings();
@@ -260,35 +266,67 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
         </div>
       </div>
 
-      {/* Smart Food & Barcode Scanner Card */}
-      <div className="bg-white dark:bg-[#1A1B1D] border-2 border-emerald-500/30 dark:border-emerald-500/40 rounded-xl p-4 shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <Camera size={20} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-display font-bold text-sm text-[#1B1C1C] dark:text-white">
-                {t('scanner_title')}
-              </span>
-              <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono font-bold rounded-full">
-                VISION AI
-              </span>
+      {/* Smart Food & Recipe Generator Suite */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Smart Food & Barcode Scanner Card */}
+        <div className="bg-white dark:bg-[#1A1B1D] border-2 border-emerald-500/30 dark:border-emerald-500/40 rounded-xl p-4 shadow-2xs flex flex-col justify-between gap-3 transition-colors">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Camera size={20} />
             </div>
-            <div className="text-xs text-[#767676] dark:text-[#9E9E9E] mt-0.5">
-              {t('scanner_plate_desc')}
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-display font-bold text-sm text-[#1B1C1C] dark:text-white">
+                  {t('scanner_title')}
+                </span>
+                <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono font-bold rounded-full">
+                  VISION AI
+                </span>
+              </div>
+              <div className="text-xs text-[#767676] dark:text-[#9E9E9E] mt-0.5">
+                {t('scanner_plate_desc')}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={onOpenBarcode}
             id="btn-scan-food-plate"
-            className="flex-1 sm:flex-initial px-3.5 py-2 bg-[#242424] hover:bg-black dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-colors shadow-xs"
+            className="w-full px-3.5 py-2 bg-[#242424] hover:bg-black dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >
             <Barcode size={14} className="text-amber-400 dark:text-amber-300" />
             <span>{t('scanner_scan_button')}</span>
+          </button>
+        </div>
+
+        {/* AI Pantry Recipe Maker Card (Cook from Raw Materials) */}
+        <div className="bg-white dark:bg-[#1A1B1D] border-2 border-amber-500/30 dark:border-amber-500/40 rounded-xl p-4 shadow-2xs flex flex-col justify-between gap-3 transition-colors">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Sparkles size={20} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-display font-bold text-sm text-[#1B1C1C] dark:text-white">
+                  Cook from Ingredients
+                </span>
+                <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 text-[10px] font-mono font-bold rounded-full">
+                  RECIPE AI
+                </span>
+              </div>
+              <div className="text-xs text-[#767676] dark:text-[#9E9E9E] mt-0.5">
+                Tell AI your available raw materials to generate custom dishes & macros
+              </div>
+            </div>
+          </div>
+
+          <button
+            onClick={onOpenRecipeMaker}
+            id="btn-cook-from-ingredients"
+            className="w-full px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-black text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+          >
+            <Sparkles size={14} />
+            <span>Generate Dish & Macros</span>
           </button>
         </div>
       </div>
@@ -302,15 +340,33 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-semibold text-sm text-[#1B1C1C] dark:text-white">
-                HIIT & Strength Conditioning
+                {burnSynced > 0 ? 'Active Training Session' : 'No Workouts Completed Today'}
               </span>
-              <RefreshCw size={12} className="text-[#767676] dark:text-[#9E9E9E]" />
+              {burnSynced > 0 && (
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Synced"></span>
+              )}
             </div>
-            <div className="text-xs text-[#767676] dark:text-[#9E9E9E]">Cult Tracker • 07:45 AM</div>
+            <div className="text-xs text-[#767676] dark:text-[#9E9E9E]">
+              {burnSynced > 0 ? (
+                'Live workout burn synced to diary'
+              ) : onStartWorkoutTab ? (
+                <button
+                  type="button"
+                  onClick={onStartWorkoutTab}
+                  className="text-amber-700 dark:text-amber-400 hover:underline font-medium inline-flex items-center gap-1"
+                >
+                  Start a workout routine in Workouts tab →
+                </button>
+              ) : (
+                'Log active workouts to record calorie burn'
+              )}
+            </div>
           </div>
         </div>
         <div className="text-right">
-          <span className="font-display font-bold text-base text-[#1B1C1C] dark:text-white">+400</span>
+          <span className="font-display font-bold text-base text-[#1B1C1C] dark:text-white">
+            {burnSynced > 0 ? `+${burnSynced}` : '0'}
+          </span>
           <div className="text-[10px] font-mono text-[#767676] dark:text-[#9E9E9E] uppercase">KCAL</div>
         </div>
       </div>
@@ -430,28 +486,33 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
                     </div>
                   ))}
                 </div>
-              ) : section.isPending ? (
-                <div className="mt-3 bg-[#FBF9F9] dark:bg-[#232427] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-lg p-3.5 flex items-center justify-between">
+              ) : (
+                <div className="mt-3 bg-[#FBF9F9] dark:bg-[#232427] border border-dashed border-[#E0E0E0] dark:border-[#333538] rounded-xl p-3 flex items-center justify-between">
                   <div className="pr-2">
-                    <div className="font-medium text-xs text-[#1B1C1C] dark:text-white">
-                      Plan your evening meal
+                    <div className="font-medium text-xs text-[#1B1C1C] dark:text-white flex items-center gap-1.5">
+                      <span>No items logged yet</span>
+                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded-sm bg-white dark:bg-[#1C1D1F] border border-[#E5E5E5] dark:border-[#383A3D] text-[#767676] dark:text-zinc-400 uppercase">
+                        {dietaryPreference === 'veg'
+                          ? '🥦 Pure Veg'
+                          : dietaryPreference === 'eggetarian'
+                          ? '🥚 Egg + Veg'
+                          : '🍗 Non-Veg'}
+                      </span>
                     </div>
-                    <div className="text-[11px] text-[#767676] dark:text-[#9E9E9E] truncate">
-                      {remainingKcal > 0
-                        ? `${remainingKcal.toLocaleString()} kcal remaining for optim...`
-                        : 'Caloric ceiling reached'}
+                    <div className="text-[11px] text-[#767676] dark:text-[#9E9E9E] mt-0.5">
+                      Snap a photo with Smart Food Scanner or tap to log manually
                     </div>
                   </div>
                   <button
-                    onClick={() => onOpenQuickLog('dinner')}
-                    id="btn-log-dinner"
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#242424] hover:bg-[#1B1C1C] dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-[#1B1C1C] text-xs font-medium rounded-md shrink-0 shadow-xs transition-colors"
+                    onClick={() => onOpenQuickLog(section.id)}
+                    id={`btn-log-${section.id}`}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-[#242424] hover:bg-[#1B1C1C] dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-[#1B1C1C] text-xs font-medium rounded-lg shrink-0 shadow-xs transition-colors"
                   >
                     <Plus size={13} />
-                    <span>Log Dinner</span>
+                    <span>Log {section.name}</span>
                   </button>
                 </div>
-              ) : null}
+              )}
             </div>
           );
         })}
@@ -524,23 +585,31 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
       </div>
 
       {/* Floating Action Buttons */}
-      <div className="fixed bottom-16 left-0 right-0 max-w-xl mx-auto px-4 pointer-events-none z-30">
-        <div className="grid grid-cols-2 gap-3 pointer-events-auto shadow-md">
+      <div className="fixed bottom-16 left-0 right-0 max-w-5xl lg:max-w-6xl mx-auto px-3 sm:px-6 pointer-events-none z-30">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 pointer-events-auto shadow-lg">
           <button
             onClick={onOpenBarcode}
             id="btn-scan-barcode"
-            className="py-3 px-4 rounded-xl bg-white/95 dark:bg-[#1A1B1D]/95 backdrop-blur-md border border-[#242424] dark:border-[#3C3D42] text-[#242424] dark:text-white hover:bg-[#F2F2F2] dark:hover:bg-[#28292E] font-display font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-colors"
+            className="py-2.5 sm:py-3 px-2 sm:px-4 rounded-xl bg-white/95 dark:bg-[#1A1B1D]/95 backdrop-blur-md border border-[#242424] dark:border-[#3C3D42] text-[#242424] dark:text-white hover:bg-[#F2F2F2] dark:hover:bg-[#28292E] font-display font-semibold text-[11px] sm:text-xs tracking-wider uppercase flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
           >
-            <Barcode size={16} strokeWidth={2.2} />
-            <span>{t('diary_barcode_lookup').toUpperCase()}</span>
+            <Barcode size={15} strokeWidth={2.2} className="shrink-0" />
+            <span className="truncate">{t('diary_barcode_lookup').toUpperCase()}</span>
+          </button>
+          <button
+            onClick={onOpenRecipeMaker}
+            id="btn-quick-cook"
+            className="py-2.5 sm:py-3 px-2 sm:px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-display font-bold text-[11px] sm:text-xs tracking-wider uppercase flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+          >
+            <Sparkles size={15} strokeWidth={2.2} className="shrink-0" />
+            <span className="truncate">COOK WITH AI</span>
           </button>
           <button
             onClick={() => onOpenQuickLog()}
             id="btn-quick-log"
-            className="py-3 px-4 rounded-xl bg-[#242424] hover:bg-[#1B1C1C] dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-[#1B1C1C] font-display font-semibold text-xs tracking-wider uppercase flex items-center justify-center gap-2 transition-colors shadow-xs"
+            className="py-2.5 sm:py-3 px-2 sm:px-4 rounded-xl bg-[#242424] hover:bg-[#1B1C1C] dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-[#1B1C1C] font-display font-semibold text-[11px] sm:text-xs tracking-wider uppercase flex items-center justify-center gap-1.5 transition-colors shadow-xs cursor-pointer"
           >
-            <Plus size={16} strokeWidth={2.5} />
-            <span>{t('diary_quick_log').toUpperCase()}</span>
+            <Plus size={15} strokeWidth={2.5} className="shrink-0" />
+            <span className="truncate">{t('diary_quick_log').toUpperCase()}</span>
           </button>
         </div>
       </div>

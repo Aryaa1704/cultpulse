@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { LifeBuoy, Target, Sun, Moon, Globe } from 'lucide-react';
-import { NavTab, UserGoal } from '../types';
+import { NavTab, UserGoal, DietaryPreference } from '../types';
 import { USER_GOALS } from '../data/goalConfigs';
 import { useAppSettings } from '../services/appSettingsContext';
 
@@ -8,12 +8,17 @@ interface HeaderProps {
   activeTab: NavTab;
   streakDays?: number;
   avatarUrl?: string;
+  userEmail?: string | null;
+  userDisplayName?: string | null;
+  dietaryPreference?: DietaryPreference;
   onAvatarClick?: () => void;
   onWorkspaceClick?: () => void;
   onScaleMonitorClick?: () => void;
   onAdminHubClick?: () => void;
   onSupportClick?: () => void;
   onGoalClick?: () => void;
+  onDietClick?: () => void;
+  onAuthClick?: () => void;
   currentGoal?: UserGoal;
   isWorkspaceConnected?: boolean;
   isAdmin?: boolean;
@@ -23,12 +28,17 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   streakDays = 7,
   avatarUrl = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80',
+  userEmail,
+  userDisplayName,
+  dietaryPreference = 'veg',
   onAvatarClick,
   onWorkspaceClick,
   onScaleMonitorClick,
   onAdminHubClick,
   onSupportClick,
   onGoalClick,
+  onDietClick,
+  onAuthClick,
   currentGoal = 'muscle_building',
   isWorkspaceConnected = false,
   isAdmin = false,
@@ -73,7 +83,7 @@ export const Header: React.FC<HeaderProps> = ({
   const currentLangObj = supportedLanguages.find((l) => l.code === language) || supportedLanguages[0];
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-b border-[#E5E5E5] dark:border-[#252628] px-3 sm:px-4 py-2.5 max-w-xl mx-auto w-full flex items-center justify-between transition-colors">
+    <header className="sticky top-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-b border-[#E5E5E5] dark:border-[#252628] px-3 sm:px-6 py-2.5 max-w-5xl lg:max-w-6xl mx-auto w-full flex items-center justify-between transition-colors">
       {/* Brand & Section */}
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-md bg-[#242424] dark:bg-amber-400 text-white dark:text-black flex items-center justify-center font-bold text-xs shadow-xs">
@@ -99,6 +109,21 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Action Controls & Utilities */}
       <div className="flex items-center gap-1 sm:gap-1.5">
+        {/* Dietary Preference Quick Selector */}
+        {onDietClick && (
+          <button
+            onClick={onDietClick}
+            id="header-diet-badge"
+            title="Change Dietary Lifestyle (Veg / Eggetarian / Non-Veg)"
+            className="flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 text-[10px] font-mono font-bold hover:bg-emerald-100 transition-colors shadow-2xs"
+          >
+            <span>{dietaryPreference === 'veg' ? '🥦' : dietaryPreference === 'eggetarian' ? '🥚' : '🍗'}</span>
+            <span className="hidden sm:inline">
+              {dietaryPreference === 'veg' ? 'VEG' : dietaryPreference === 'eggetarian' ? 'EGG' : 'NON-VEG'}
+            </span>
+          </button>
+        )}
+
         {/* Fitness Goal Quick Selector */}
         {onGoalClick && (
           <button
@@ -180,28 +205,6 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         )}
 
-        {/* Admin Live Activity Hub Button (Super Admin only) */}
-        {isAdmin && onAdminHubClick && (
-          <button
-            onClick={onAdminHubClick}
-            title={t('header_admin')}
-            className="flex items-center gap-1 px-2 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 text-[10px] font-mono font-bold hover:bg-amber-100 transition-colors shadow-2xs"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-            <span>ADMIN</span>
-          </button>
-        )}
-
-        {/* 1M Scale Engine Monitor Pill */}
-        <button
-          onClick={onScaleMonitorClick}
-          title={t('header_scale')}
-          className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono font-medium hover:bg-emerald-100 transition-colors"
-        >
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="font-bold">1M: 60FPS</span>
-        </button>
-
         {/* Workspace Hub Button */}
         <button
           onClick={onWorkspaceClick}
@@ -225,19 +228,36 @@ export const Header: React.FC<HeaderProps> = ({
           <span>{getStreakLabel()}</span>
         </div>
 
-        {/* Avatar */}
-        <button
-          onClick={onAvatarClick}
-          aria-label="Profile"
-          className="relative w-8 h-8 rounded-full overflow-hidden border border-[#C4C7C7] dark:border-zinc-600 hover:border-[#242424] transition-colors focus:outline-hidden shrink-0"
-        >
-          <img
-            src={avatarUrl}
-            alt="Alex Rivera"
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-          />
-        </button>
+        {/* Avatar or Sign In button */}
+        {!userEmail ? (
+          <button
+            onClick={onAuthClick}
+            id="btn-header-signin"
+            className="px-2.5 py-1 rounded-full bg-[#242424] hover:bg-black dark:bg-amber-400 dark:hover:bg-amber-500 text-white dark:text-black font-semibold text-[11px] transition-colors shadow-xs"
+          >
+            Sign In
+          </button>
+        ) : (
+          <button
+            onClick={onAvatarClick}
+            aria-label="Profile"
+            title={`Logged in as ${userDisplayName || userEmail}`}
+            className="relative w-8 h-8 rounded-full overflow-hidden border border-[#C4C7C7] dark:border-zinc-600 hover:border-[#242424] transition-colors focus:outline-hidden shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800"
+          >
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt={userDisplayName || 'Athlete'}
+                className="w-full h-full object-cover"
+                referrerPolicy="no-referrer"
+              />
+            ) : (
+              <span className="font-bold text-xs text-[#1B1C1C] dark:text-white">
+                {(userDisplayName || userEmail || 'A')[0].toUpperCase()}
+              </span>
+            )}
+          </button>
+        )}
       </div>
     </header>
   );

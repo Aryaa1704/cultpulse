@@ -281,6 +281,192 @@ Respond strictly with valid JSON conforming to this schema:
     }
   });
 
+  // AI Ingredient-to-Recipe Generation Endpoint (Raw materials to finished dish & macros)
+  app.post('/api/generate-recipe-from-ingredients', async (req, res) => {
+    try {
+      const { ingredients, dietaryPreference = 'veg', mealType = 'lunch', targetKcal, notes, language = 'en' } = req.body;
+
+      if (!ingredients || (typeof ingredients === 'string' && !ingredients.trim()) || (Array.isArray(ingredients) && ingredients.length === 0)) {
+        return res.status(400).json({ error: 'Please provide at least one raw ingredient or food item' });
+      }
+
+      const rawIngredientsText = Array.isArray(ingredients) ? ingredients.join(', ') : String(ingredients);
+      const apiKey = process.env.GEMINI_API_KEY;
+
+      if (apiKey) {
+        try {
+          const ai = new GoogleGenAI({
+            apiKey,
+            httpOptions: {
+              headers: {
+                'User-Agent': 'aistudio-build',
+              },
+            },
+          });
+
+          const prompt = `You are a certified professional culinary chef and sports nutritionist.
+The user has provided the following RAW INGREDIENTS available in their kitchen:
+"${rawIngredientsText}"
+
+User's Dietary Lifestyle: ${dietaryPreference} (${dietaryPreference === 'veg' ? 'Strict Vegetarian - NO meat, NO eggs' : dietaryPreference === 'eggetarian' ? 'Eggetarian - Eggs and dairy/plant foods allowed, NO meat/chicken/fish' : 'Non-Vegetarian - All proteins allowed'})
+Target Meal Type: ${mealType}
+${targetKcal ? `Target Calories: ~${targetKcal} kcal` : ''}
+${notes ? `User Custom Note: "${notes}"` : ''}
+Language: ${language}
+
+TASK:
+Invent a realistic, delicious, high-nutrition recipe that the user can actually cook using PRIMARILY these available raw materials (plus basic staples like salt, cooking oil/ghee, water, and common spices).
+CRITICAL RULES:
+1. Strictly respect the dietary preference (${dietaryPreference}). NEVER suggest meat for veg/eggetarian, NEVER suggest eggs for pure veg.
+2. Provide authentic, precise macro estimates (calories, protein in grams, carbs in grams, fats in grams, fiber in grams).
+3. Keep cooking steps straightforward, realistic (10-25 mins), and easy to follow at home.
+
+Return ONLY a valid JSON object matching this schema without markdown fences:
+{
+  "dishName": "Authentic dish name",
+  "prepTime": "15 mins",
+  "difficulty": "Easy" | "Medium",
+  "mealType": "${mealType}",
+  "calories": 350,
+  "protein": 24,
+  "carbs": 35,
+  "fats": 12,
+  "fiber": 6,
+  "ingredientsUsed": [
+    "Quantity and ingredient 1",
+    "Quantity and ingredient 2"
+  ],
+  "instructions": [
+    "Step 1: ...",
+    "Step 2: ...",
+    "Step 3: ..."
+  ],
+  "chefTip": "Actionable culinary tip",
+  "healthBenefit": "Nutritional benefit for energy and muscle synthesis",
+  "dietaryCategory": "${dietaryPreference}"
+}`;
+
+          const response = await ai.models.generateContent({
+            model: 'gemini-3.8-flash',
+            contents: prompt,
+            config: {
+              responseMimeType: 'application/json',
+              temperature: 0.3,
+            },
+          });
+
+          const text = response.text || '{}';
+          const cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
+          const parsed = JSON.parse(cleanText);
+
+          return res.json({
+            dishName: parsed.dishName || 'Custom Protein Bowl',
+            prepTime: parsed.prepTime || '15 mins',
+            difficulty: parsed.difficulty || 'Easy',
+            mealType: parsed.mealType || mealType,
+            calories: Number(parsed.calories) || 350,
+            protein: Number(parsed.protein) || 20,
+            carbs: Number(parsed.carbs) || 35,
+            fats: Number(parsed.fats) || 12,
+            fiber: Number(parsed.fiber) || 5,
+            ingredientsUsed: Array.isArray(parsed.ingredientsUsed) ? parsed.ingredientsUsed : [rawIngredientsText],
+            instructions: Array.isArray(parsed.instructions) ? parsed.instructions : ['Cook ingredients together in a skillet.'],
+            chefTip: parsed.chefTip || 'Season with fresh herbs and a dash of lemon juice.',
+            healthBenefit: parsed.healthBenefit || 'Balanced fuel supporting sustained energy and lean recovery.',
+            dietaryCategory: dietaryPreference,
+            source: 'gemini-3.8-flash',
+          });
+        } catch (geminiError: any) {
+          console.warn('Gemini recipe generation fallback triggered:', geminiError?.message);
+        }
+      }
+
+      // Intelligent Deterministic Culinary Engine Fallback if offline/no key
+      const ingLower = rawIngredientsText.toLowerCase();
+      let calculatedCalories = targetKcal || 380;
+      let protein = 22;
+      let carbs = 40;
+      let fats = 14;
+      let fiber = 6;
+      let dishName = 'Chef Crafted Skillet Bowl';
+
+      if (dietaryPreference === 'veg') {
+        if (ingLower.includes('paneer') || ingLower.includes('tofu')) {
+          dishName = 'Pan-Seared Paneer & Herb Stir-Fry';
+          protein = 26;
+          fats = 18;
+          carbs = 20;
+          calculatedCalories = 346;
+        } else if (ingLower.includes('oats') || ingLower.includes('milk') || ingLower.includes('banana')) {
+          dishName = 'High-Fiber Power Porridge Bowl';
+          protein = 15;
+          carbs = 58;
+          fats = 8;
+          calculatedCalories = 364;
+        } else if (ingLower.includes('dal') || ingLower.includes('rice') || ingLower.includes('lentil')) {
+          dishName = 'Homestyle Spiced Lentil Khichdi with Greens';
+          protein = 18;
+          carbs = 62;
+          fats = 6;
+          calculatedCalories = 374;
+        } else {
+          dishName = 'Sautéed Garden Veggie & Seed Warm Medley';
+          protein = 12;
+          carbs = 35;
+          fats = 10;
+          calculatedCalories = 278;
+        }
+      } else if (dietaryPreference === 'eggetarian' || ingLower.includes('egg')) {
+        dishName = 'Spiced Country Scramble with Sautéed Veggies';
+        protein = 24;
+        carbs = 18;
+        fats = 15;
+        calculatedCalories = 303;
+      } else {
+        if (ingLower.includes('chicken') || ingLower.includes('meat') || ingLower.includes('fish')) {
+          dishName = 'Herb-Grilled Lean Cut with Steamed Veggies';
+          protein = 38;
+          carbs = 12;
+          fats = 9;
+          calculatedCalories = 281;
+        } else {
+          dishName = 'High-Protein Farmer Breakfast Skillet';
+          protein = 26;
+          carbs = 28;
+          fats = 14;
+          calculatedCalories = 342;
+        }
+      }
+
+      return res.json({
+        dishName,
+        prepTime: '15 mins',
+        difficulty: 'Easy',
+        mealType,
+        calories: calculatedCalories,
+        protein,
+        carbs,
+        fats,
+        fiber,
+        ingredientsUsed: rawIngredientsText.split(',').map((s) => s.trim()).filter(Boolean),
+        instructions: [
+          `Prep and chop ${rawIngredientsText} into uniform bite-sized pieces.`,
+          'Warm a non-stick pan with 1 tsp oil or ghee over medium heat.',
+          'Sauté aromatics, then add the prepared ingredients and gently cook for 8-10 minutes.',
+          'Season with sea salt, black pepper, and your favorite whole spices.',
+          'Serve warm as a balanced, high-protein meal.',
+        ],
+        chefTip: 'Lightly roasting your whole spices brings out essential aromatic oils without adding extra calories.',
+        healthBenefit: `Rich in macro-nutrients tailored specifically for your ${dietaryPreference} lifestyle.`,
+        dietaryCategory: dietaryPreference,
+        source: 'culinary-engine',
+      });
+    } catch (err: any) {
+      console.error('Recipe generation error:', err);
+      return res.status(500).json({ error: 'Failed to generate recipe from ingredients', details: err.message });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

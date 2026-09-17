@@ -12,7 +12,7 @@ import { SmartFoodScannerModal } from './components/SmartFoodScannerModal';
 import { AIFormModal } from './components/AIFormModal';
 import { ShareReportModal } from './components/ShareReportModal';
 import { initialMealSections, workoutProtocols, mockAnalyticsData } from './data/mockData';
-import { initAuth } from './services/googleAuth';
+import { initAuth, getStoredUserSession, logout, StoredUserSession } from './services/googleAuth';
 import {
   UserAppState,
   loadUserAppState,
@@ -21,12 +21,12 @@ import {
   setActiveTelemetryUserId,
   recordUserActivity,
 } from './services/scaleEngine';
-import { ScaleMonitorModal } from './components/ScaleMonitorModal';
-import { AdminUserActivityHub } from './components/AdminUserActivityHub';
 import { SupportModal } from './components/SupportModal';
-import { isSuperAdminEmail, sanitizeInput } from './services/securityEngine';
-import { User } from 'firebase/auth';
-import { UserGoal } from './types';
+import { AuthModal } from './components/AuthModal';
+import { DietaryOnboardingModal } from './components/DietaryOnboardingModal';
+import { IngredientRecipeModal } from './components/IngredientRecipeModal';
+import { sanitizeInput } from './services/securityEngine';
+import { UserGoal, DietaryPreference } from './types';
 import { USER_GOALS } from './data/goalConfigs';
 import { GoalSelectionModal } from './components/GoalSelectionModal';
 
@@ -36,88 +36,110 @@ export default function App() {
     uid: string;
     email: string | null;
     displayName: string | null;
+    photoURL?: string | null;
   }>(() => {
+    const session = getStoredUserSession();
+    if (session) {
+      return {
+        uid: session.uid,
+        email: session.email,
+        displayName: session.displayName,
+        photoURL: session.photoURL,
+      };
+    }
     const guestId = getOrCreateGuestId();
-    return { uid: guestId, email: null, displayName: 'Athlete (Guest)' };
+    return { uid: guestId, email: null, displayName: null };
   });
 
   // Master App State managed by 1M Scale Engine
-  const [appState, setAppState] = useState<UserAppState>(() =>
-    loadUserAppState(getOrCreateGuestId())
-  );
+  const [appState, setAppState] = useState<UserAppState>(() => {
+    const session = getStoredUserSession();
+    if (session) {
+      return loadUserAppState(session.uid, session.email, session.displayName);
+    }
+    return loadUserAppState(getOrCreateGuestId());
+  });
 
   // Navigation & Modals
   const [activeTab, setActiveTab] = useState<NavTab>('diary');
   const [isWorkspaceConnected, setIsWorkspaceConnected] = useState(false);
-  const [isScaleMonitorOpen, setIsScaleMonitorOpen] = useState(false);
-  const [isAdminHubOpen, setIsAdminHubOpen] = useState(false);
   const [isSupportOpen, setIsSupportOpen] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isDietaryModalOpen, setIsDietaryModalOpen] = useState(false);
+  const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
 
-  // Super Admin security (Cryptographic SHA-256 Hashing Verification)
-  const [isAdminVerified, setIsAdminVerified] = useState(false);
-  const [isAdminOverride, setIsAdminOverride] = useState<boolean>(() => {
-    const saved = localStorage.getItem('cultpulse_admin_override');
-    return saved !== null ? saved === 'true' : true;
-  });
+  const handleAuthSuccess = (session: StoredUserSession) => {
+    setActiveUser({
+      uid: session.uid,
+      email: session.email,
+      displayName: session.displayName,
+      photoURL: session.photoURL,
+    });
+    setActiveTelemetryUserId(session.uid);
+    const loadedState = loadUserAppState(session.uid, session.email, session.displayName);
+    setAppState(loadedState);
+    setIsAuthModalOpen(false);
+    showToast(`Welcome, ${session.displayName || 'Athlete'}!`);
 
-  useEffect(() => {
-    if (activeUser.email) {
-      isSuperAdminEmail(activeUser.email).then((match) => {
-        setIsAdminVerified(match);
-      });
-    } else {
-      setIsAdminVerified(false);
+    // Check if user has already configured their dietary preference
+    const savedDiet = localStorage.getItem(`cultpulse_diet_${session.uid}`);
+    if (!savedDiet) {
+      // Prompt user to select their dietary preference and fitness goals
+      setIsDietaryModalOpen(true);
     }
-  }, [activeUser.email]);
-
-  const isAdmin = isAdminVerified || isAdminOverride;
-
-  const handleSwitchToAdmin = () => {
-    setIsAdminOverride(true);
-    localStorage.setItem('cultpulse_admin_override', 'true');
-    setActiveUser((prev) => ({
-      ...prev,
-      displayName: 'System Administrator (Owner)',
-    }));
-    showToast(`Super Admin console unlocked.`);
   };
 
-  const handleSwitchToRegularUser = () => {
-    setIsAdminOverride(false);
-    localStorage.setItem('cultpulse_admin_override', 'false');
+  const handleSignOut = async () => {
+    await logout();
     const guestId = getOrCreateGuestId();
-    setActiveUser({ uid: guestId, email: null, displayName: 'Athlete (Guest)' });
-    setIsAdminHubOpen(false);
-    showToast('Switched to Regular User view. Admin controls hidden.');
+    setActiveUser({ uid: guestId, email: null, displayName: null });
+    setActiveTelemetryUserId(guestId);
+    setAppState(loadUserAppState(guestId));
+    setIsWorkspaceConnected(false);
+    showToast('Signed out successfully. Switched to guest mode.');
   };
 
   useEffect(() => {
     const unsubscribe = initAuth(
-      (user: User) => {
-        setIsWorkspaceConnected(true);
+      (session: StoredUserSession, token: string | null) => {
+        setIsWorkspaceConnected(!!token);
         setActiveUser({
-          uid: user.uid,
-          email: user.email,
-          displayName: user.displayName,
+          uid: session.uid,
+          email: session.email,
+          displayName: session.displayName,
+          photoURL: session.photoURL,
         });
-        setActiveTelemetryUserId(user.uid);
-        const loadedState = loadUserAppState(user.uid, user.email, user.displayName);
+        setActiveTelemetryUserId(session.uid);
+        const loadedState = loadUserAppState(session.uid, session.email, session.displayName);
         setAppState(loadedState);
 
         recordUserActivity({
-          userId: user.uid,
-          userName: user.displayName || user.email?.split('@')[0] || 'Athlete',
-          userEmail: user.email,
+          userId: session.uid,
+          userName: session.displayName || session.email?.split('@')[0] || 'Athlete',
+          userEmail: session.email,
           actionType: 'SIGN_IN',
-          title: 'Signed in via Google OAuth',
-          description: 'User connected with Google Workspace credentials',
+          title: 'User Authenticated',
+          description: `User connected via ${session.provider === 'google' ? 'Google OAuth' : 'Email Authentication'}`,
         });
       },
       () => {
         setIsWorkspaceConnected(false);
-        const guestId = getOrCreateGuestId();
-        setActiveUser({ uid: guestId, email: null, displayName: 'Athlete (Guest)' });
-        setActiveTelemetryUserId(guestId);
+        const currentStored = getStoredUserSession();
+        if (currentStored) {
+          setActiveUser({
+            uid: currentStored.uid,
+            email: currentStored.email,
+            displayName: currentStored.displayName,
+            photoURL: currentStored.photoURL,
+          });
+          setActiveTelemetryUserId(currentStored.uid);
+          setAppState(loadUserAppState(currentStored.uid, currentStored.email, currentStored.displayName));
+        } else {
+          const guestId = getOrCreateGuestId();
+          setActiveUser({ uid: guestId, email: null, displayName: null });
+          setActiveTelemetryUserId(guestId);
+          setAppState(loadUserAppState(guestId));
+        }
       }
     );
     return () => unsubscribe();
@@ -371,28 +393,52 @@ export default function App() {
     });
   };
 
+  const handleSaveDietary = (diet: DietaryPreference, goal: UserGoal, customKcal?: number) => {
+    setUserGoal(goal);
+    localStorage.setItem('cultpulse_user_goal', goal);
+    const updated = saveUserAppStateOptimistic(
+      {
+        ...appState,
+        dietaryPreference: diet,
+        dailyGoal: customKcal || USER_GOALS[goal]?.targetKcal || appState.dailyGoal,
+      },
+      'UPDATE_DIET_PREFERENCE',
+      { diet, goal, customKcal }
+    );
+    setAppState(updated);
+    setIsDietaryModalOpen(false);
+    showToast(
+      `Dietary preference set to ${
+        diet === 'veg' ? 'Vegetarian' : diet === 'eggetarian' ? 'Eggetarian' : 'Non-Vegetarian'
+      }!`
+    );
+  };
+
   return (
     <div className="min-h-screen bg-[#FBF9F9] dark:bg-[#0E0F10] text-[#1B1C1C] dark:text-[#EAEAEA] flex flex-col items-center transition-colors">
       {/* Container Frame */}
-      <div className="w-full max-w-xl mx-auto flex flex-col min-h-screen relative shadow-2xs bg-[#FBF9F9] dark:bg-[#141517] border-x border-transparent dark:border-[#232427] transition-colors">
+      <div className="w-full max-w-5xl lg:max-w-6xl mx-auto flex flex-col min-h-screen relative shadow-2xs bg-[#FBF9F9] dark:bg-[#141517] border-x border-transparent dark:border-[#232427] transition-colors">
         {/* Sticky Header */}
         <Header
           activeTab={activeTab}
           streakDays={appState.analyticsData.athlete.streakDays}
-          avatarUrl={appState.analyticsData.athlete.avatarUrl}
+          avatarUrl={activeUser.photoURL || appState.analyticsData.athlete.avatarUrl}
+          userEmail={activeUser.email}
+          userDisplayName={activeUser.displayName}
+          dietaryPreference={appState.dietaryPreference || 'veg'}
           onAvatarClick={() => setActiveTab('progress')}
           onWorkspaceClick={() => setActiveTab('workspace')}
-          onScaleMonitorClick={() => setIsScaleMonitorOpen(true)}
-          onAdminHubClick={() => setIsAdminHubOpen(true)}
           onSupportClick={() => setIsSupportOpen(true)}
           onGoalClick={() => setIsGoalModalOpen(true)}
+          onDietClick={() => setIsDietaryModalOpen(true)}
+          onAuthClick={() => setIsAuthModalOpen(true)}
           currentGoal={userGoal}
           isWorkspaceConnected={isWorkspaceConnected}
-          isAdmin={isAdmin}
+          isAdmin={false}
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 px-4 pt-3">
+        <main className="flex-1 px-3 sm:px-6 pt-3">
           {(activeTab === 'diary' || activeTab === 'today') && (
             <DiaryView
               currentDate={getFormattedDate()}
@@ -404,10 +450,13 @@ export default function App() {
               mealSections={appState.mealSections}
               waterMl={appState.waterMl}
               waterGoalMl={appState.waterGoalMl}
+              dietaryPreference={appState.dietaryPreference || 'veg'}
+              onStartWorkoutTab={() => setActiveTab('workouts')}
               onAddWater={handleAddWater}
               onSetCustomWater={handleSetCustomWater}
               onOpenQuickLog={handleOpenQuickLog}
               onOpenBarcode={() => setIsBarcodeOpen(true)}
+              onOpenRecipeMaker={() => setIsRecipeModalOpen(true)}
               onOpenWorkspace={() => setActiveTab('workspace')}
             />
           )}
@@ -423,6 +472,7 @@ export default function App() {
           {activeTab === 'live' && (
             <LiveSessionView
               currentProtocol={activeProtocol}
+              activeUserName={activeUser.displayName || (activeUser.email ? activeUser.email.split('@')[0] : 'Athlete')}
               onEndSession={handleEndSession}
               onOpenAIForm={() => setIsAIFormOpen(true)}
             />
@@ -431,13 +481,16 @@ export default function App() {
           {activeTab === 'progress' && (
             <ProgressView
               data={appState.analyticsData}
+              userEmail={activeUser.email}
+              userDisplayName={activeUser.displayName}
+              dietaryPreference={appState.dietaryPreference || 'veg'}
               onOpenShareReport={() => setIsShareReportOpen(true)}
-              onOpenSettings={() => setIsScaleMonitorOpen(true)}
               onOpenWorkspace={() => setActiveTab('workspace')}
-              onOpenAdminHub={() => setIsAdminHubOpen(true)}
               onOpenSupport={() => setIsSupportOpen(true)}
-              isAdmin={isAdmin}
-              onAdminLoginToggle={isAdmin ? handleSwitchToRegularUser : handleSwitchToAdmin}
+              onOpenDietaryModal={() => setIsDietaryModalOpen(true)}
+              onOpenAuthModal={() => setIsAuthModalOpen(true)}
+              onSignOut={handleSignOut}
+              isAdmin={false}
             />
           )}
 
@@ -457,20 +510,13 @@ export default function App() {
         <BottomNav activeTab={activeTab} onChangeTab={setActiveTab} />
 
         {/* Modals */}
-        <AdminUserActivityHub
-          isOpen={isAdminHubOpen}
-          onClose={() => setIsAdminHubOpen(false)}
-          adminEmail={activeUser.email}
-          isAdmin={isAdmin}
-          onAuthenticateAdmin={handleSwitchToAdmin}
-        />
-
-        <ScaleMonitorModal
-          isOpen={isScaleMonitorOpen}
-          onClose={() => setIsScaleMonitorOpen(false)}
-          currentState={appState}
-          onStateUpdate={(next) => setAppState(next)}
-          userEmail={activeUser.email}
+        <IngredientRecipeModal
+          isOpen={isRecipeModalOpen}
+          onClose={() => setIsRecipeModalOpen(false)}
+          dietaryPreference={appState.dietaryPreference || 'veg'}
+          onLogDish={(sectionId, item) => {
+            handleLogFood(sectionId, item);
+          }}
         />
 
         <QuickLogModal
@@ -495,6 +541,22 @@ export default function App() {
           isOpen={isShareReportOpen}
           onClose={() => setIsShareReportOpen(false)}
           data={appState.analyticsData}
+        />
+
+        {/* User Authentication Modal (Google / Email & Password) */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          onAuthSuccess={handleAuthSuccess}
+        />
+
+        {/* Dietary Preference & Onboarding Modal (Veg / Egg / Non-Veg & Target Kcal) */}
+        <DietaryOnboardingModal
+          isOpen={isDietaryModalOpen}
+          onClose={() => setIsDietaryModalOpen(false)}
+          initialDiet={appState.dietaryPreference || 'veg'}
+          initialGoal={userGoal}
+          onSave={handleSaveDietary}
         />
 
         {/* User Help & Support Center (s44810335@gmail.com) */}
