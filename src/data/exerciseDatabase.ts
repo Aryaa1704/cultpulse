@@ -40,6 +40,7 @@ export interface ExerciseItem {
   description: string;
   formCues: string[];
   imageUrl: string;
+  videoEmbedId: string;
 }
 
 export const comprehensiveExerciseDatabase: ExerciseItem[] = [
@@ -58,6 +59,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'The foundation compound movement for upper body pressing power and dense pectoral mass.',
     formCues: ['Retract scapula into bench', 'Tuck elbows ~45 degrees', 'Touch mid-sternum, drive up through heels'],
     imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'rT7DgCr-3pg',
   },
   {
     id: 'ex-chest-2',
@@ -73,6 +75,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Benches angled at 30-45° focus mechanical tension directly into the upper shelf of the chest.',
     formCues: ['Keep chest proud and arched slightly', 'Deep stretch at bottom without shoulder roll', 'Squeeze at top without clanking dumbbells'],
     imageUrl: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: '8iPEnn-ltC8',
   },
   {
     id: 'ex-chest-3',
@@ -88,6 +91,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Provides continuous peak tension across full pectoral adduction.',
     formCues: ['Slight bend in elbows', 'Lead with elbows and squeeze pecs together', 'Control eccentric return for 3 seconds'],
     imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'Iwe6AmxVf7o',
   },
   {
     id: 'ex-chest-4',
@@ -103,6 +107,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Leaning forward 30 degrees activates extreme lower chest recruitment.',
     formCues: ['Lean torso forward', 'Elbows flared slightly outwards', 'Descend until 90-degree arm bend, drive back up'],
     imageUrl: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: '2z8JmcrW-As',
   },
 
   // ==================== BACK ====================
@@ -120,6 +125,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'The supreme test of full posterior chain strength, posterior thickness, and CNS activation.',
     formCues: ['Bar over mid-foot', 'Engage lats by pulling bar into shins', 'Push floor away through heels, lock hips forward'],
     imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'op9kVnSso6Q',
   },
   {
     id: 'ex-back-2',
@@ -135,6 +141,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Creates that coveted V-taper silhouette with isolated overhead vertical pulling.',
     formCues: ['Slight backward torso tilt (10-15°)', 'Pull bar to upper collarbone', 'Depress shoulder blades first before pulling with arms'],
     imageUrl: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'CAwf7n6Luuc',
   },
   {
     id: 'ex-back-3',
@@ -150,6 +157,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Explosive horizontal pulling from dead-stop floor rests to build immense upper back density.',
     formCues: ['Torso parallel to floor', 'Brace core tightly', 'Pull explosively to lower rib cage'],
     imageUrl: 'https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'FWJR5Ve8gkQ',
   },
   {
     id: 'ex-back-4',
@@ -165,6 +173,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Essential bulletproofing exercise for rotator cuffs, scapular rhythm, and posture correction.',
     formCues: ['Set cable at eye level', 'Pull rope towards temples', 'Externally rotate hands back like a double bicep pose'],
     imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'rep-qVOkqgk',
   },
 
   // ==================== LEGS ====================
@@ -182,6 +191,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'King of leg development and foundational lower-body athletic force generation.',
     formCues: ['Root feet with 3-point contact', 'Break at hips and knees simultaneously', 'Hit parallel or deeper with upright chest'],
     imageUrl: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'ultWZbUMPL8',
   },
   {
     id: 'ex-leg-2',
@@ -197,6 +207,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Pure hip hinge emphasizing eccentric lengthening of the hamstring muscles under load.',
     formCues: ['Soft bend in knees that stays locked', 'Push hips back towards wall behind you', 'Feel intense stretch in hamstrings before reversing'],
     imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: '_oyxCn2iSjU',
   },
   {
     id: 'ex-leg-3',
@@ -212,6 +223,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Unforgiving unilateral exercise that destroys strength imbalances and recruits stabilizers.',
     formCues: ['Rear toe on bench', 'Lower until back knee almost grazes turf', 'Drive through front mid-foot'],
     imageUrl: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: '2C-uNgKwPLE',
   },
   {
     id: 'ex-leg-4',
@@ -227,6 +239,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Full ankle dorsiflexion to plantarflexion for lower leg density and tendon spring stiffness.',
     formCues: ['2 second stretch pause at absolute bottom', 'Explode onto balls of big toes', 'Hold peak contraction for 1 full second'],
     imageUrl: 'https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: '3UWi44yN-wE',
   },
 
   // ==================== SHOULDERS ====================
@@ -244,6 +257,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Strict standing press building boulder shoulders, core stability, and overhead lockouts.',
     formCues: ['Squeeze glutes and quads for solid pillar', 'Clear chin as bar ascends vertical path', 'Push head forward through the window at lockout'],
     imageUrl: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: '2yjwXTZQDDI',
   },
   {
     id: 'ex-sh-2',
@@ -259,6 +273,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Continuous resistance curve gives the side delts maximum stimulus from initial pull to top.',
     formCues: ['Lean away from cable tower at 15°', 'Raise arm in scapular plane (slight forward angle)', 'Pour the water slightly with pinky higher'],
     imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: '3VcKaXpzqRo',
   },
   {
     id: 'ex-sh-3',
@@ -274,6 +289,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Rounds out 3D shoulder aesthetics and protects the front shoulder capsules.',
     formCues: ['Torso hinged at 45°', 'Pull elbows wide like wings', 'Do not shrug neck or use momentum'],
     imageUrl: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'ttvfGg9d76c',
   },
 
   // ==================== ARMS (BICEPS & TRICEPS) ====================
@@ -291,6 +307,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'The ergonomic cambered bar minimizes wrist strain while overloading the bicep belly.',
     formCues: ['Pin elbows to your ribcage', 'Do not swing hips or sway backward', 'Squeeze peaks hard at top of contraction'],
     imageUrl: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'kwG2ipFRgfo',
   },
   {
     id: 'ex-arm-2',
@@ -306,6 +323,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Shoulder extension places the long head in maximum passive stretch for heightened hypertrophy.',
     formCues: ['Bench set to 60° incline', 'Let arms hang fully perpendicular', 'Supinate palms hard at top of curl'],
     imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'soxrZlIl35U',
   },
   {
     id: 'ex-arm-3',
@@ -321,6 +339,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Isolates the triceps with variable wrist flare at full elbow lockout.',
     formCues: ['Keep elbows tucked and stationary', 'Spread the rope ends apart at the bottom', 'Lock out tricep hard for 1 second'],
     imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'vB5OHsJ3EME',
   },
   {
     id: 'ex-arm-4',
@@ -336,6 +355,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Attacks the largest portion of the tricep by angling the arms slightly back beyond vertical.',
     formCues: ['Arms tilted 15° back towards head', 'Bend only at elbows towards forehead/bench crown', 'Drive through triceps to extend without elbow flare'],
     imageUrl: 'https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'd_KZxkY_0cM',
   },
 
   // ==================== CORE / ABS ====================
@@ -353,6 +373,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Posterior pelvic tilt under hanging suspension forces deep lower abdominal engagement.',
     formCues: ['Do not swing with momentum', 'Curl pelvis upward toward ribcage', 'Controlled eccentric lower'],
     imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'hdng3Nm1x_E',
   },
   {
     id: 'ex-core-2',
@@ -368,6 +389,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Anti-rotational stability protects lumbar spine and chisels lateral waistlines.',
     formCues: ['Lock hips forward', 'Rotate only through thoracic cage and core', 'Resist rotational twist during slow return'],
     imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'pZapR59Liio',
   },
 
   // ==================== MOBILITY & FLEXIBILITY ====================
@@ -385,6 +407,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Unlocks tight hips, fixes deep squat depth limitations, and relieves lumbar tension.',
     formCues: ['Both knees at 90-degree angles on mat', 'Keep chest tall without leaning back', 'Pivot through hips without using hands for assistance'],
     imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'P3sAee_qCeg',
   },
   {
     id: 'ex-mob-2',
@@ -400,6 +423,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'The premier dynamic pre-workout movement unlocking every joint capsule in the kinetic chain.',
     formCues: ['Deep lunge with front foot outside hands', 'Drop inside elbow toward floor', 'Reach high arm toward ceiling while eyes follow hand'],
     imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'K2VlbA9Kow8',
   },
   {
     id: 'ex-mob-3',
@@ -415,6 +439,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Static lengthening post-workout to restore resting muscle length and reduce soreness.',
     formCues: ['Keep hips square to the mat', 'Breathe deeply into diaphragm', 'Relax deeper into tension on each long exhale'],
     imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: '0_zP_uB_p4s',
   },
   {
     id: 'ex-mob-4',
@@ -430,6 +455,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Restores spinal segmentation fluidity and reverses forward-head desk posture.',
     formCues: ['Inhale: belly drops, head arches up', 'Exhale: push ground away, dome spine like angry cat', 'Puppy pose: melt chest toward floor'],
     imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'kqnua4rHVVA',
   },
 
   // ==================== ENDURANCE & CONDITIONING ====================
@@ -447,6 +473,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'High-power posterior hip snap conditioning that burns immense calories without joint impact.',
     formCues: ['Hike bell deep between legs', 'Violently snap hips forward to stand tall', 'Bell floats to chest height via hip momentum, not arms'],
     imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'sSESeQAir2M',
   },
   {
     id: 'ex-end-2',
@@ -462,6 +489,7 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Maximum aerobic threshold training that tests mental grit and oxygen uptake.',
     formCues: ['Push and pull handles with upper body simultaneously', 'Drive legs through pedals', 'Maintain cadence above 65 RPM'],
     imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'n0Y3zK3g7w0',
   },
   {
     id: 'ex-end-3',
@@ -477,5 +505,6 @@ export const comprehensiveExerciseDatabase: ExerciseItem[] = [
     description: 'Low-impact, full-body power endurance engaging 86% of the body’s muscle groups.',
     formCues: ['Catch position: vertical shins', 'Drive legs 60%, lean hips 20%, pull arms 20%', 'Smooth return recovery'],
     imageUrl: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=500&auto=format&fit=crop&q=80',
+    videoEmbedId: 'H0r_ZGSB8u8',
   },
 ];

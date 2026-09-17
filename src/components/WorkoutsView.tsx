@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { WorkoutProtocol } from '../types';
 import { ExerciseLibraryModal } from './ExerciseLibraryModal';
+import { ExerciseVideoModal } from './ExerciseVideoModal';
 import {
   comprehensiveExerciseDatabase,
   MuscleGroup,
@@ -45,6 +46,7 @@ export const WorkoutsView: React.FC<WorkoutsViewProps> = ({
   const [durationFilter, setDurationFilter] = useState<string>('Any');
   const [equipmentFilter, setEquipmentFilter] = useState<string>('All');
   const [isExerciseIndexOpen, setIsExerciseIndexOpen] = useState(false);
+  const [videoModalExercise, setVideoModalExercise] = useState<ExerciseItem | null>(null);
 
   // Side panel targeted anatomy selection
   const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | 'All'>('Chest');
@@ -308,22 +310,48 @@ export const WorkoutsView: React.FC<WorkoutsViewProps> = ({
                       </p>
                     </div>
 
-                    <div className="text-right shrink-0">
-                      <span className="text-[11px] font-mono font-semibold text-[#1B1C1C] dark:text-white">
-                        {ex.defaultSets} × {ex.defaultRepsOrDuration}
-                      </span>
-                      <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
-                        {ex.difficulty}
+                    <div className="text-right shrink-0 flex items-center gap-2">
+                      <div>
+                        <span className="text-[11px] font-mono font-semibold text-[#1B1C1C] dark:text-white">
+                          {ex.defaultSets} × {ex.defaultRepsOrDuration}
+                        </span>
+                        <div className="text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                          {ex.difficulty}
+                        </div>
                       </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setVideoModalExercise(ex);
+                        }}
+                        title="Watch Exercise Demonstration Video"
+                        className="w-7 h-7 rounded-lg bg-amber-400/20 hover:bg-amber-400/35 text-amber-900 dark:text-amber-300 flex items-center justify-center transition-colors shadow-2xs shrink-0"
+                      >
+                        <Play size={12} fill="currentColor" />
+                      </button>
                     </div>
                   </div>
 
                   {/* Expanded detail when clicked */}
                   {isDetailActive && (
-                    <div className="mt-3 pt-2.5 border-t border-amber-200/80 dark:border-amber-800/60 space-y-2 animate-in fade-in duration-200 text-xs">
+                    <div className="mt-3 pt-2.5 border-t border-amber-200/80 dark:border-amber-800/60 space-y-2.5 animate-in fade-in duration-200 text-xs">
                       <p className="text-zinc-700 dark:text-zinc-300 leading-relaxed text-[11px]">
                         {ex.description}
                       </p>
+
+                      {/* Watch Video Demo Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setVideoModalExercise(ex);
+                        }}
+                        className="w-full py-2 bg-amber-400 hover:bg-amber-500 text-black rounded-lg text-xs font-display font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
+                      >
+                        <Play size={13} fill="currentColor" />
+                        <span>Watch Biomechanics Video Drill</span>
+                      </button>
+
                       <div className="bg-white/80 dark:bg-[#141517] p-2.5 rounded-lg border border-amber-200 dark:border-amber-800 space-y-1">
                         <span className="text-[10px] font-mono font-bold text-[#1B1C1C] dark:text-amber-400 uppercase block">
                           {t('workouts_form_cues')}:
@@ -543,6 +571,13 @@ export const WorkoutsView: React.FC<WorkoutsViewProps> = ({
       <ExerciseLibraryModal
         isOpen={isExerciseIndexOpen}
         onClose={() => setIsExerciseIndexOpen(false)}
+      />
+
+      {/* Exercise Form Demonstration Video Modal */}
+      <ExerciseVideoModal
+        exercise={videoModalExercise}
+        isOpen={Boolean(videoModalExercise)}
+        onClose={() => setVideoModalExercise(null)}
       />
     </div>
   );

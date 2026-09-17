@@ -20,6 +20,7 @@ import {
   ExerciseCategory,
   EquipmentType,
 } from '../data/exerciseDatabase';
+import { ExerciseVideoModal } from './ExerciseVideoModal';
 
 interface ExerciseLibraryModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('All Disciplines');
   const [selectedEquipment, setSelectedEquipment] = useState<string>('All Equipment');
   const [activeExerciseDetail, setActiveExerciseDetail] = useState<ExerciseItem | null>(null);
+  const [videoModalExercise, setVideoModalExercise] = useState<ExerciseItem | null>(null);
   const [loggedNotification, setLoggedNotification] = useState<string | null>(null);
 
   const muscleGroups: string[] = [
@@ -266,13 +268,23 @@ export const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
                 </div>
 
                 <div className="pt-3 mt-3 border-t border-[#F2F2F2] flex items-center justify-between gap-2">
-                  <button
-                    onClick={() => setActiveExerciseDetail(ex)}
-                    className="text-xs text-[#242424] font-semibold hover:underline inline-flex items-center gap-1"
-                  >
-                    <Info size={13} />
-                    <span>View Form Cues ({ex.formCues.length})</span>
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setActiveExerciseDetail(ex)}
+                      className="text-xs text-[#242424] font-semibold hover:underline inline-flex items-center gap-1"
+                    >
+                      <Info size={13} />
+                      <span>Form Cues</span>
+                    </button>
+
+                    <button
+                      onClick={() => setVideoModalExercise(ex)}
+                      className="text-xs text-amber-700 font-semibold hover:underline inline-flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-md"
+                    >
+                      <Play size={11} fill="currentColor" />
+                      <span>Demo</span>
+                    </button>
+                  </div>
 
                   <button
                     onClick={() => handleStartOrLog(ex)}
@@ -327,6 +339,15 @@ export const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
                   </div>
                 </div>
 
+                {/* Watch Movement Video Demo Button */}
+                <button
+                  onClick={() => setVideoModalExercise(activeExerciseDetail)}
+                  className="w-full py-2.5 bg-amber-400 hover:bg-amber-500 text-black rounded-xl text-xs font-display font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
+                >
+                  <Play size={14} fill="currentColor" />
+                  <span>Watch Biomechanics Video Drill</span>
+                </button>
+
                 <div>
                   <h5 className="font-bold text-xs text-[#1B1C1C] mb-1.5 flex items-center gap-1.5">
                     <Zap size={14} className="text-amber-500" />
@@ -366,6 +387,13 @@ export const ExerciseLibraryModal: React.FC<ExerciseLibraryModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* Exercise Video Player Modal */}
+      <ExerciseVideoModal
+        exercise={videoModalExercise}
+        isOpen={Boolean(videoModalExercise)}
+        onClose={() => setVideoModalExercise(null)}
+      />
     </div>
   );
 };

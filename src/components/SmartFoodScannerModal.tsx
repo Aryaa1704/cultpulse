@@ -22,15 +22,23 @@ import {
   Utensils,
   AlertTriangle,
   Tag,
+  Lock,
+  LogIn,
+  Shield,
+  Clock,
 } from 'lucide-react';
 import { MealItem } from '../types';
 import {
-  globalFoodDatabase,
   FoodDatabaseEntry,
   lookupFoodByBarcode,
-  searchGlobalFoodDatabase,
 } from '../data/foodDatabase';
 import { useAppSettings } from '../services/appSettingsContext';
+import {
+  getUserAIQuotaStatus,
+  consumeUserDailyScan,
+  DAILY_SCAN_LIMIT,
+  UserAIQuotaStatus,
+} from '../services/aiUsageManager';
 
 export interface AnalyzedPlateItem {
   id: string;
@@ -59,7 +67,8 @@ export interface FoodAnalysisResult {
   healthTip: string;
   macronutrientInsight: string;
   dietaryFlags: string[];
-  source: 'gemini-vision' | 'nutrition-engine';
+  source: 'smart-vision' | 'nutrition-engine';
+  cached?: boolean;
 }
 
 interface SmartFoodScannerModalProps {
@@ -67,6 +76,9 @@ interface SmartFoodScannerModalProps {
   onClose: () => void;
   onLogItem: (sectionId: string, item: MealItem) => void;
   defaultSectionId?: string;
+  userEmail?: string | null;
+  userId?: string;
+  onOpenAuth?: () => void;
 }
 
 export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
@@ -74,10 +86,22 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
   onClose,
   onLogItem,
   defaultSectionId = 'lunch',
+  userEmail,
+  userId,
+  onOpenAuth,
 }) => {
   const { t, language } = useAppSettings();
-  const [activeMode, setActiveMode] = useState<'camera' | 'barcode' | 'database'>('camera');
+  const [activeMode, setActiveMode] = useState<'camera' | 'barcode'>('camera');
   const [selectedSection, setSelectedSection] = useState(defaultSectionId);
+
+  // AI Fair-Usage & Daily Quota State
+  const [quota, setQuota] = useState<UserAIQuotaStatus>(() =>
+    getUserAIQuotaStatus(userId, userEmail)
+  );
+
+  useEffect(() => {
+    setQuota(getUserAIQuotaStatus(userId, userEmail));
+  }, [userId, userEmail, isOpen]);
 
   // Camera & Image state
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -98,11 +122,7 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
   const [barcodeInput, setBarcodeInput] = useState('');
   const [scanningBarcodeAnimation, setScanningBarcodeAnimation] = useState(false);
 
-  // Database search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All Categories');
-
-  // Selected item from database/barcode with portion scaler
+  // Selected item from barcode with portion scaler
   const [matchedFood, setMatchedFood] = useState<FoodDatabaseEntry | null>(null);
   const [selectedServingIndex, setSelectedServingIndex] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(1);
@@ -137,7 +157,7 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
     }
   };
 
-  // Helper to downscale large camera photos to fast, optimal resolution for Gemini Vision
+  // Helper to downscale large camera photos to fast, optimal resolution
   const resizeImageFile = (file: File): Promise<string> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -196,6 +216,19 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
 
   // Run Real Vision Analysis via Server API
   const runVisionAnalysis = async (imageData: string, hintNote?: string) => {
+    // Quota Enforcement Guard
+    if (quota.isGuest) {
+      setScannerError('Member login is strictly required for optical plate recognition.');
+      return;
+    }
+
+    if (quota.scansRemaining <= 0) {
+      setScannerError(
+        'Daily fair-usage limit reached (3/3 scans used today). Your 3 daily scans renew tomorrow at midnight.'
+      );
+      return;
+    }
+
     setAnalyzingPhoto(true);
     setScannerNotice(null);
     setScannerError(null);
@@ -222,6 +255,12 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
 
       setAiAnalysis(data);
 
+      // Deduct from daily limit if not served from zero-cost optical cache
+      if (userId && !data.cached) {
+        consumeUserDailyScan(userId);
+        setQuota(getUserAIQuotaStatus(userId, userEmail));
+      }
+
       // Default all items to selected
       const initialSelection: Record<string, boolean> = {};
       data.items.forEach((item: any) => {
@@ -230,14 +269,20 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
       setIncludedItems(initialSelection);
       setQuantity(1);
 
-      setScannerNotice(
-        `AI Vision verified: "${data.mealName}" (~${data.totalCalories} kcal) with ${data.confidence} confidence.`
-      );
+      if (data.cached) {
+        setScannerNotice(
+          `Optical Recognition verified (Cached Instant Result): "${data.mealName}" (~${data.totalCalories} kcal) • 0 Daily Scans Used!`
+        );
+      } else {
+        setScannerNotice(
+          `Optical Recognition verified: "${data.mealName}" (~${data.totalCalories} kcal) with ${data.confidence} confidence.`
+        );
+      }
     } catch (err: any) {
       console.error('Vision analysis error:', err);
       setAiAnalysis(null);
       setScannerError(
-        err.message || 'AI Vision model was busy. Please click "Retry Scan" to try again.'
+        err.message || 'Optical vision engine was busy. Please click "Retry Scan" to try again.'
       );
     } finally {
       setAnalyzingPhoto(false);
@@ -395,8 +440,6 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
 
   if (!isOpen) return null;
 
-  const searchedDatabaseResults = searchGlobalFoodDatabase(searchQuery, selectedCategory);
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 md:p-6 bg-black/80 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-[#FBF9F9] dark:bg-[#161718] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-hidden shadow-2xl flex flex-col transition-colors">
@@ -413,7 +456,7 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
                 </h2>
                 <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono font-bold rounded-full flex items-center gap-1">
                   <Sparkles size={10} />
-                  GEMINI VISION
+                  AI VISION
                 </span>
               </div>
               <p className="text-xs text-[#767676] dark:text-zinc-400">
@@ -441,7 +484,7 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
             }`}
           >
             <Camera size={14} />
-            <span>AI Plate / Photo Vision</span>
+            <span>Plate Optical Vision</span>
           </button>
 
           <button
@@ -455,19 +498,35 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
             <Barcode size={14} />
             <span>Barcode Scanner</span>
           </button>
-
-          <button
-            onClick={() => setActiveMode('database')}
-            className={`flex-1 py-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-              activeMode === 'database'
-                ? 'bg-[#242424] dark:bg-amber-400 text-white dark:text-black shadow-2xs font-bold'
-                : 'bg-[#F2F2F2] dark:bg-[#232427] text-[#4A4A4A] dark:text-zinc-300 hover:bg-[#EAEAEA]'
-            }`}
-          >
-            <Search size={14} />
-            <span>Verified Food Index</span>
-          </button>
         </div>
+
+        {/* Fair-Usage Daily Quota Status Banner (Active for logged-in members) */}
+        {activeMode === 'camera' && !quota.isGuest && (
+          <div className="px-4 py-2 bg-[#F7F7F8] dark:bg-[#1A1B1E] border-b border-[#E5E5E5] dark:border-[#2C2D30] flex items-center justify-between text-xs">
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  quota.scansRemaining > 0 ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'
+                }`}
+              />
+              <span className="font-medium text-[#4A4A4A] dark:text-zinc-300">
+                Daily Fair-Usage Quota:
+              </span>
+              <span
+                className={`font-mono font-bold ${
+                  quota.scansRemaining > 0
+                    ? 'text-emerald-700 dark:text-amber-400'
+                    : 'text-rose-600 dark:text-rose-400'
+                }`}
+              >
+                {quota.scansRemaining} of {quota.limit} scans left today
+              </span>
+            </div>
+            <span className="text-[11px] text-[#767676] dark:text-zinc-400 font-mono hidden sm:inline">
+              Breakfast, Lunch, Dinner • Resets 00:00
+            </span>
+          </div>
+        )}
 
         {/* Notice Toast */}
         {scannerNotice && (
@@ -484,7 +543,7 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
               <AlertTriangle size={14} className="text-rose-600 dark:text-rose-400 shrink-0" />
               <span className="truncate">{scannerError}</span>
             </div>
-            {uploadedImagePreview && (
+            {uploadedImagePreview && !quota.isGuest && quota.scansRemaining > 0 && (
               <button
                 onClick={() => runVisionAnalysis(uploadedImagePreview, userNote)}
                 disabled={analyzingPhoto}
@@ -501,6 +560,59 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {/* CAMERA / PHOTO VISION MODE */}
           {activeMode === 'camera' && (
+            quota.isGuest ? (
+              /* STRICT LOGIN REQUIRED CARD FOR GUEST VISITORS */
+              <div className="p-6 md:p-8 flex flex-col items-center text-center space-y-4 max-w-md mx-auto my-6 animate-in fade-in duration-200">
+                <div className="w-16 h-16 rounded-2xl bg-amber-400/15 border border-amber-400/30 text-amber-500 dark:text-amber-400 flex items-center justify-center shadow-inner">
+                  <Lock size={30} />
+                </div>
+
+                <div className="space-y-1.5">
+                  <h3 className="font-display font-bold text-lg text-[#1B1C1C] dark:text-white">
+                    Member Login Required for Plate Vision
+                  </h3>
+                  <p className="text-xs text-[#767676] dark:text-zinc-400 leading-relaxed">
+                    Guest visitors can freely scan barcodes or quick-log food. Optical plate recognition is reserved for verified members with 3 free daily scans (Breakfast, Lunch, Dinner).
+                  </p>
+                </div>
+
+                <div className="w-full p-3.5 bg-white dark:bg-[#1D1E22] rounded-xl border border-[#E5E5E5] dark:border-zinc-800 text-left space-y-2 text-xs shadow-2xs">
+                  <div className="flex items-center gap-2 text-[#1B1C1C] dark:text-zinc-200 font-semibold">
+                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                    <span>3 Daily Optical Plate Scans (Zero Spam Abuse)</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#1B1C1C] dark:text-zinc-200 font-semibold">
+                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                    <span>Instant Multi-Item Macro & Calorie Breakdown</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[#1B1C1C] dark:text-zinc-200 font-semibold">
+                    <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                    <span>Zero-Cost In-Memory Optical Caching for Repeated Foods</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-2.5 w-full pt-2">
+                  <button
+                    onClick={() => {
+                      onClose();
+                      onOpenAuth?.();
+                    }}
+                    className="w-full py-3 bg-[#242424] hover:bg-black dark:bg-amber-400 dark:hover:bg-amber-500 text-white dark:text-black font-display font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all shadow-md"
+                  >
+                    <LogIn size={15} />
+                    <span>Sign In to Unlock AI Scanner</span>
+                  </button>
+
+                  <button
+                    onClick={() => setActiveMode('barcode')}
+                    className="w-full py-3 bg-[#F2F2F2] dark:bg-[#252629] text-[#4A4A4A] dark:text-zinc-300 hover:bg-[#EAEAEA] font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Barcode size={15} />
+                    <span>Use Barcode Scanner</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
             <div className="space-y-4">
               {/* Photo Viewport Container */}
               <div className="relative bg-black rounded-2xl overflow-hidden aspect-16/10 flex items-center justify-center border border-zinc-700 shadow-inner">
@@ -526,8 +638,8 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
                         AI Plate Vision & Multi-Item Food Recognition
                       </p>
                       <p className="text-[11px] text-zinc-400 mt-1 max-w-sm mx-auto">
-                        Upload or photograph any meal. Gemini Vision accurately recognizes specific dishes
-                        (Dal Baati Churma, Puri Sabzi, Biryani, Roti Sabzi, salads, etc.), computes calories,
+                        Upload or photograph any meal. Smart Vision AI accurately recognizes specific dishes
+                        (Rajma Chawal, Dal Baati Churma, Puri Sabzi, Biryani, Roti Sabzi, salads, etc.), computes calories,
                         and breaks down every component on the plate.
                       </p>
                     </div>
@@ -577,7 +689,7 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
                 <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-auto">
                   <span className="px-2.5 py-1 bg-black/75 backdrop-blur-md rounded-md text-[10px] font-mono text-zinc-300">
                     {analyzingPhoto
-                      ? 'Gemini Vision Analyzing...'
+                      ? 'Analyzing Plate & Nutrition...'
                       : uploadedImagePreview
                       ? 'Plate Photo Loaded'
                       : cameraActive
@@ -603,19 +715,40 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
 
                     <button
                       onClick={handleSnapButtonClick}
-                      disabled={analyzingPhoto}
+                      disabled={analyzingPhoto || quota.scansRemaining <= 0}
                       className="px-4 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-black font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-lg transition-transform active:scale-95 disabled:opacity-50"
                     >
                       {analyzingPhoto ? (
                         <RefreshCw size={13} className="animate-spin" />
+                      ) : quota.scansRemaining <= 0 ? (
+                        <Clock size={13} />
                       ) : (
                         <Sparkles size={13} />
                       )}
-                      <span>{analyzingPhoto ? 'Analyzing...' : 'Scan Plate with AI'}</span>
+                      <span>
+                        {analyzingPhoto
+                          ? 'Analyzing...'
+                          : quota.scansRemaining <= 0
+                          ? 'Daily Limit Reached'
+                          : 'Scan Plate Optical Vision'}
+                      </span>
                     </button>
                   </div>
                 </div>
               </div>
+
+              {/* Daily Quota Exhausted Alert */}
+              {quota.scansRemaining <= 0 && (
+                <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-xl text-xs flex items-center gap-2.5 text-amber-800 dark:text-amber-300">
+                  <Clock size={16} className="shrink-0 text-amber-500" />
+                  <div>
+                    <span className="font-bold">Daily Fair-Usage Limit Reached (3/3 scans used today)</span>
+                    <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5">
+                      Your 3 daily optical scans renew tonight at 12:00 AM midnight. You can continue using the Barcode Scanner or Quick Log unlimited times!
+                    </p>
+                  </div>
+                </div>
+              )}
 
               {/* AI MULTI-ITEM ANALYSIS RESULT CARD */}
               {aiAnalysis && (
@@ -859,6 +992,7 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
                 </div>
               )}
             </div>
+            )
           )}
 
           {/* BARCODE SCANNER MODE */}
@@ -923,65 +1057,14 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
             </div>
           )}
 
-          {/* VERIFIED GLOBAL DATABASE SEARCH */}
-          {activeMode === 'database' && (
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search
-                    size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#767676] dark:text-zinc-400"
-                  />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search 100+ foods (Puri Sabzi, Roti, Dal, Paneer, Chicken, Oats)..."
-                    className="w-full bg-white dark:bg-[#1C1D1F] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-xl pl-9 pr-3 py-2 text-xs text-[#1B1C1C] dark:text-white focus:outline-hidden focus:border-[#242424] dark:focus:border-amber-400"
-                  />
-                </div>
-              </div>
-
-              <div className="max-h-56 overflow-y-auto space-y-1.5 border border-[#E5E5E5] dark:border-[#2C2D30] rounded-xl p-2 bg-white dark:bg-[#1C1D1F]">
-                {searchedDatabaseResults.map((f) => (
-                  <div
-                    key={f.id}
-                    onClick={() => {
-                      setMatchedFood(f);
-                      setSelectedServingIndex(0);
-                      setQuantity(1);
-                      setScannerNotice(`Selected: ${f.name}`);
-                    }}
-                    className={`p-2.5 rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
-                      matchedFood?.id === f.id
-                        ? 'bg-zinc-100 dark:bg-zinc-800 border border-zinc-400 dark:border-zinc-600'
-                        : 'hover:bg-[#FBF9F9] dark:hover:bg-[#252629] border border-transparent'
-                    }`}
-                  >
-                    <div>
-                      <div className="text-xs font-bold text-[#1B1C1C] dark:text-white">{f.name}</div>
-                      <div className="text-[11px] text-[#767676] dark:text-zinc-400">
-                        {f.portion} • {f.calories} kcal • {f.protein}g Protein
-                      </div>
-                    </div>
-
-                    <span className="text-[10px] font-mono px-2 py-0.5 bg-zinc-200 dark:bg-zinc-700 text-zinc-800 dark:text-zinc-200 rounded font-semibold">
-                      {f.category}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* SINGLE FOOD DATABASE NUTRITION SCALER CARD (If selected from DB or Barcode) */}
-          {matchedFood && (activeMode === 'database' || activeMode === 'barcode') && (
+          {/* SINGLE FOOD NUTRITION SCALER CARD (If selected from Barcode) */}
+          {matchedFood && activeMode === 'barcode' && (
             <div className="p-4 bg-white dark:bg-[#1C1D1F] border-2 border-emerald-500/40 rounded-2xl space-y-4 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[9px] font-mono font-bold rounded-xs uppercase">
-                      VERIFIED NUTRITION
+                      PRODUCT NUTRITION
                     </span>
                     <span className="text-[10px] text-[#767676] dark:text-zinc-400 font-mono">
                       Category: {matchedFood.category}

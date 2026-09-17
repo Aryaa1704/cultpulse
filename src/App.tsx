@@ -530,6 +530,9 @@ export default function App() {
           isOpen={isBarcodeOpen}
           onClose={() => setIsBarcodeOpen(false)}
           onLogItem={handleLogFood}
+          userEmail={activeUser.email}
+          userId={activeUser.uid}
+          onOpenAuth={() => setIsAuthModalOpen(true)}
         />
 
         <AIFormModal
