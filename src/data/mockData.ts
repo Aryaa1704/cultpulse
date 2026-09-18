@@ -28,9 +28,6 @@ export const workoutProtocols: WorkoutProtocol[] = [
     modality: 'Dance',
     badge: 'OPEN ACCESS',
     imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&auto=format&fit=crop&q=80',
-    videoEmbedId: 'gCzgc_RelBA',
-    femaleVideoEmbedId: 'ZWk19OVon2k',
-    startSeconds: 5,
     isFavorite: true,
   },
   {
@@ -45,9 +42,6 @@ export const workoutProtocols: WorkoutProtocol[] = [
     modality: 'HIIT',
     badge: 'OPEN ACCESS',
     imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&auto=format&fit=crop&q=80',
-    videoEmbedId: '2MoGxae-zyo',
-    femaleVideoEmbedId: '1f8yoFFdkLU',
-    startSeconds: 6,
     isFavorite: false,
   },
   {
@@ -62,9 +56,6 @@ export const workoutProtocols: WorkoutProtocol[] = [
     modality: 'Strength',
     badge: 'OPEN ACCESS',
     imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80',
-    videoEmbedId: 'YymhWvVj8tA',
-    femaleVideoEmbedId: 'UItWltVZZmE',
-    startSeconds: 8,
     isFavorite: true,
   },
   {
@@ -79,9 +70,6 @@ export const workoutProtocols: WorkoutProtocol[] = [
     modality: 'Mobility / Yoga',
     badge: 'OPEN ACCESS',
     imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=80',
-    videoEmbedId: 'g_tea8ZNk5A',
-    femaleVideoEmbedId: 'sTANio_2E0Q',
-    startSeconds: 6,
     isFavorite: false,
   },
   {
@@ -96,9 +84,6 @@ export const workoutProtocols: WorkoutProtocol[] = [
     modality: 'HIIT',
     badge: 'OPEN ACCESS',
     imageUrl: 'https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=800&auto=format&fit=crop&q=80',
-    videoEmbedId: 'ml6cT4AZdqI',
-    femaleVideoEmbedId: 'my_p4m8m5jU',
-    startSeconds: 7,
     isFavorite: false,
   },
 ];
@@ -113,9 +98,6 @@ export const liveDrills: Drill[] = [
     load: 'Warmup',
     impact: 'LOW IMPACT',
     imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&auto=format&fit=crop&q=80',
-    videoEmbedId: 'K2VlbA9Kow8',
-    femaleVideoEmbedId: 'sTANio_2E0Q',
-    startSeconds: 5,
   },
   {
     id: 'd-2',
@@ -126,9 +108,6 @@ export const liveDrills: Drill[] = [
     load: 'Bodyweight',
     impact: 'HIGH IMPACT',
     imageUrl: 'https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=400&auto=format&fit=crop&q=80',
-    videoEmbedId: 'OAJ_J3EZrx8',
-    femaleVideoEmbedId: '8opcQdC-5gk',
-    startSeconds: 6,
   },
   {
     id: 'd-3',
@@ -139,9 +118,6 @@ export const liveDrills: Drill[] = [
     load: 'Bodyweight',
     impact: 'MODERATE',
     imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&auto=format&fit=crop&q=80',
-    videoEmbedId: 'de_tv0WjK54',
-    femaleVideoEmbedId: 'nmwgirgXLYM',
-    startSeconds: 5,
   },
   {
     id: 'd-4',
@@ -152,9 +128,6 @@ export const liveDrills: Drill[] = [
     load: '2× 5kg Load',
     impact: 'HIGH IMPACT',
     imageUrl: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&auto=format&fit=crop&q=80',
-    videoEmbedId: 'L219ltL15zk',
-    femaleVideoEmbedId: 'M0u_QW_v7nI',
-    startSeconds: 6,
   },
   {
     id: 'd-5',
@@ -165,9 +138,6 @@ export const liveDrills: Drill[] = [
     load: 'Bodyweight',
     impact: 'HIGH IMPACT',
     imageUrl: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&auto=format&fit=crop&q=80',
-    videoEmbedId: '1ExU8CRl4eU',
-    femaleVideoEmbedId: '1B_mZ1h0l4M',
-    startSeconds: 6,
   },
   {
     id: 'd-6',
@@ -178,9 +148,6 @@ export const liveDrills: Drill[] = [
     load: '2× 7.5kg Load',
     impact: 'MODERATE',
     imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&auto=format&fit=crop&q=80',
-    videoEmbedId: 'roCP6wCXPqo',
-    femaleVideoEmbedId: '2m8VpS5s7U0',
-    startSeconds: 5,
   },
 ];
 

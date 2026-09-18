@@ -44,7 +44,40 @@ export interface StoredUserSession {
   displayName: string | null;
   photoURL?: string | null;
   provider: 'google' | 'email' | 'guest';
+  gender?: 'male' | 'female';
 }
+
+export const getActiveUserGender = (): 'male' | 'female' => {
+  try {
+    const session = getStoredUserSession();
+    if (session?.gender) return session.gender;
+    if (session?.uid) {
+      const userSpecific = localStorage.getItem(`cultpulse_gender_${session.uid}`);
+      if (userSpecific === 'male' || userSpecific === 'female') return userSpecific;
+    }
+    const globalGender = localStorage.getItem('cultpulse_user_gender');
+    if (globalGender === 'male' || globalGender === 'female') return globalGender;
+  } catch {
+    // fallback
+  }
+  return 'male';
+};
+
+export const setActiveUserGender = (gender: 'male' | 'female', uid?: string) => {
+  try {
+    localStorage.setItem('cultpulse_user_gender', gender);
+    if (uid) {
+      localStorage.setItem(`cultpulse_gender_${uid}`, gender);
+    }
+    const session = getStoredUserSession();
+    if (session) {
+      session.gender = gender;
+      setStoredUserSession(session);
+    }
+  } catch (e) {
+    console.warn('Failed to save user gender:', e);
+  }
+};
 
 export const getStoredUserSession = (): StoredUserSession | null => {
   try {

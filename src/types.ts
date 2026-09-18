@@ -41,9 +41,6 @@ export interface WorkoutProtocol {
   modality: 'HIIT' | 'Strength' | 'Mobility / Yoga' | 'Dance';
   badge: 'OPEN ACCESS' | 'PRO';
   imageUrl: string;
-  videoEmbedId?: string;
-  femaleVideoEmbedId?: string;
-  startSeconds?: number;
   isFavorite?: boolean;
 }
 
@@ -56,9 +53,9 @@ export interface Drill {
   load: string;
   impact: 'HIGH IMPACT' | 'MODERATE' | 'LOW IMPACT';
   imageUrl: string;
-  videoEmbedId?: string;
-  femaleVideoEmbedId?: string;
-  startSeconds?: number;
+  videoUrl?: string;
+  femaleVideoUrl?: string;
+  femalePosterUrl?: string;
 }
 
 export interface AnalyticsData {

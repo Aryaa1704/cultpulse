@@ -1,28 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   Play,
-  RotateCcw,
+  Pause,
   Volume2,
   VolumeX,
   CheckCircle2,
-  Flame,
-  Zap,
-  ExternalLink,
   Activity,
   Tv,
-  RefreshCw,
+  RotateCcw,
+  Sparkles,
   ShieldCheck,
-  UserCheck
 } from 'lucide-react';
-import { ExerciseItem } from '../data/exerciseDatabase';
-import { getCoachGender, setCoachGender, CoachGender } from '../services/coachPreference';
+import { ExerciseItem, getExerciseVideo } from '../data/exerciseDatabase';
+import { getActiveUserGender } from '../services/googleAuth';
 
 interface ExerciseVideoModalProps {
   exercise: ExerciseItem | null;
   isOpen: boolean;
   onClose: () => void;
   onLogExercise?: (exercise: ExerciseItem) => void;
+  userGender?: 'male' | 'female';
 }
 
 export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
@@ -30,90 +28,81 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
   isOpen,
   onClose,
   onLogExercise,
+  userGender: propGender,
 }) => {
+  const [activeGender, setActiveGender] = useState<'male' | 'female'>('male');
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
-  const [coachGender, setLocalCoachGender] = useState<CoachGender>(getCoachGender());
   const [playerMode, setPlayerMode] = useState<'video' | 'cadence'>('video');
-  const [cadencePhase, setCadencePhase] = useState<'Eccentric (Lowering)' | 'Peak Stretch' | 'Concentric (Drive)' | 'Reset'>('Eccentric (Lowering)');
+  const [videoError, setVideoError] = useState(false);
+  const [cadencePhase, setCadencePhase] = useState<'Eccentric (3s Lowering)' | 'Isometric (1s Peak)' | 'Concentric (1s Drive)' | 'Reset (Inhale)'>('Eccentric (3s Lowering)');
   const [cadenceTime, setCadenceTime] = useState(3);
   const [repCount, setRepCount] = useState(1);
-  const [iframeKey, setIframeKey] = useState(0);
-  const [imageError, setImageError] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  useEffect(() => {
-    const handleGenderChange = (e: any) => {
-      if (e.detail?.gender) {
-        setLocalCoachGender(e.detail.gender);
-      }
-    };
-    window.addEventListener('cultpulse:coach-gender-change', handleGenderChange);
-    return () => window.removeEventListener('cultpulse:coach-gender-change', handleGenderChange);
-  }, []);
-
+  // Sync active gender from props or stored user session
   useEffect(() => {
     if (isOpen) {
+      const g = propGender || getActiveUserGender();
+      setActiveGender(g);
       setIsPlaying(true);
-      setImageError(false);
+      setVideoError(false);
       setRepCount(1);
-      setLocalCoachGender(getCoachGender());
     }
-  }, [isOpen, exercise]);
+  }, [isOpen, propGender, exercise]);
 
-  const handleToggleCoachGender = (newGender: CoachGender) => {
-    setLocalCoachGender(newGender);
-    setCoachGender(newGender);
-    setIframeKey((k) => k + 1);
-  };
-
-  // Visual cadence animator for the Biomechanics coach
+  // Tempo Cadence Metronome (3-1-1 Tempo)
   useEffect(() => {
     if (!isOpen || playerMode !== 'cadence') return;
 
-    const interval = setInterval(() => {
+    const timer = setInterval(() => {
       setCadenceTime((prev) => {
         if (prev > 1) return prev - 1;
-        
-        // Phase transition
+
         setCadencePhase((currPhase) => {
-          if (currPhase === 'Eccentric (Lowering)') {
-            return 'Peak Stretch';
-          } else if (currPhase === 'Peak Stretch') {
-            return 'Concentric (Drive)';
-          } else if (currPhase === 'Concentric (Drive)') {
+          if (currPhase === 'Eccentric (3s Lowering)') {
+            return 'Isometric (1s Peak)';
+          } else if (currPhase === 'Isometric (1s Peak)') {
+            return 'Concentric (1s Drive)';
+          } else if (currPhase === 'Concentric (1s Drive)') {
             setRepCount((r) => r + 1);
-            return 'Reset';
+            return 'Reset (Inhale)';
           } else {
-            return 'Eccentric (Lowering)';
+            return 'Eccentric (3s Lowering)';
           }
         });
         return 3;
       });
     }, 1000);
 
-    return () => clearInterval(interval);
+    return () => clearInterval(timer);
   }, [isOpen, playerMode]);
 
   if (!isOpen || !exercise) return null;
 
-  // Choose gender-tailored video ID
-  const activeVideoId =
-    coachGender === 'female' && exercise.femaleVideoEmbedId
-      ? exercise.femaleVideoEmbedId
-      : exercise.videoEmbedId;
+  const videoData = getExerciseVideo(exercise, activeGender);
+  const currentVideoUrl = videoData.videoUrl;
+  const currentPosterUrl = videoData.posterUrl;
 
-  const startSeconds = exercise.startSeconds || 6;
+  const togglePlayPause = () => {
+    if (videoRef.current) {
+      if (isPlaying) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        videoRef.current.play();
+        setIsPlaying(true);
+      }
+    } else {
+      setIsPlaying(!isPlaying);
+    }
+  };
 
-  // Primary standard YouTube embed URL with optimal flags, starting right past channel intro
-  const primaryEmbedUrl = `https://www.youtube.com/embed/${activeVideoId}?start=${startSeconds}&autoplay=${isPlaying ? 1 : 0}&mute=${isMuted ? 1 : 0}&loop=1&playlist=${activeVideoId}&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1`;
-  
-  // High-def thumbnail options
-  const hqThumbnail = `https://img.youtube.com/vi/${activeVideoId}/hqdefault.jpg`;
-  const fallbackThumbnail = exercise.imageUrl || `https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80`;
-  const currentThumbnail = imageError ? fallbackThumbnail : hqThumbnail;
-
-  const handleOpenExternalVideo = () => {
-    window.open(`https://www.youtube.com/watch?v=${activeVideoId}&t=${startSeconds}s`, '_blank', 'noopener,noreferrer');
+  const toggleMute = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+    }
+    setIsMuted(!isMuted);
   };
 
   return (
@@ -122,7 +111,7 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
         {/* Header Bar */}
         <div className="p-3.5 md:p-4 bg-[#18191C] border-b border-zinc-800/80 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-400 text-black flex items-center justify-center font-bold shadow-sm">
+            <div className="w-8 h-8 rounded-lg bg-amber-400 text-black flex items-center justify-center font-bold shadow-xs">
               <Play size={15} fill="currentColor" />
             </div>
             <div>
@@ -141,18 +130,17 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Direct Open in New Tab Button */}
-            <button
-              onClick={handleOpenExternalVideo}
-              title="Open full HD video in YouTube (new tab)"
-              className="px-2.5 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-300 hover:text-white text-xs font-mono font-semibold flex items-center gap-1.5 transition-colors border border-zinc-700/60"
-            >
-              <ExternalLink size={13} />
-              <span className="hidden sm:inline">Open in YouTube</span>
-            </button>
+            {/* Active Trainer Gender Indicator (Matches User Profile) */}
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/90 border border-zinc-700/60 text-xs font-mono text-zinc-300">
+              <span>{activeGender === 'female' ? '👩' : '👨'}</span>
+              <span className="font-semibold text-white">
+                {activeGender === 'female' ? 'Coach Maya' : 'Coach Marcus'}
+              </span>
+            </div>
 
             <button
               onClick={onClose}
+              id="btn-close-exercise-video"
               className="w-8 h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white flex items-center justify-center transition-colors"
               aria-label="Close modal"
             >
@@ -161,11 +149,12 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
           </div>
         </div>
 
-        {/* Mode & Gender Selector Bar */}
-        <div className="px-3.5 py-2 bg-[#151619] border-b border-zinc-800/60 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-1.5">
+        {/* View Switcher: Video Drill vs Biomechanics Cadence Coach */}
+        <div className="px-4 py-2 bg-[#151619] border-b border-zinc-800/60 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setPlayerMode('video')}
+              id="btn-switch-video-mode"
               className={`px-3 py-1 rounded-md font-mono text-[11px] font-bold flex items-center gap-1.5 transition-colors ${
                 playerMode === 'video'
                   ? 'bg-amber-400 text-black shadow-2xs'
@@ -173,11 +162,12 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
               }`}
             >
               <Tv size={12} />
-              <span>Video Demonstration</span>
+              <span>HD Video Drill</span>
             </button>
 
             <button
               onClick={() => setPlayerMode('cadence')}
+              id="btn-switch-cadence-mode"
               className={`px-3 py-1 rounded-md font-mono text-[11px] font-bold flex items-center gap-1.5 transition-colors ${
                 playerMode === 'cadence'
                   ? 'bg-amber-400 text-black shadow-2xs'
@@ -185,113 +175,94 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
               }`}
             >
               <Activity size={12} />
-              <span>Tempo & Cadence Coach</span>
+              <span>3-1-1 Tempo Cadence</span>
             </button>
           </div>
 
-          {/* Gender Coach Selector */}
-          <div className="flex items-center gap-1 bg-black/60 p-0.5 rounded-lg border border-zinc-800">
-            <span className="text-[10px] font-mono text-zinc-400 px-1.5 hidden sm:inline">Trainer:</span>
-            <button
-              onClick={() => handleToggleCoachGender('male')}
-              className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold flex items-center gap-1 transition-colors ${
-                coachGender === 'male'
-                  ? 'bg-amber-400 text-black shadow-xs'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              <span>👨 Male</span>
-            </button>
-            <button
-              onClick={() => handleToggleCoachGender('female')}
-              className={`px-2 py-0.5 rounded text-[11px] font-mono font-bold flex items-center gap-1 transition-colors ${
-                coachGender === 'female'
-                  ? 'bg-amber-400 text-black shadow-xs'
-                  : 'text-zinc-400 hover:text-white'
-              }`}
-            >
-              <span>👩 Female</span>
-            </button>
+          <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-400">
+            <span>Burn: <strong className="text-emerald-400">~{exercise.caloriesBurnPerHour} kcal/hr</strong></span>
           </div>
         </div>
 
-        {/* Video Player & Media Container */}
+        {/* Media Player Stage */}
         <div className="relative bg-black flex flex-col items-center justify-center">
           {playerMode === 'video' ? (
-            <div className="relative w-full aspect-video overflow-hidden bg-zinc-950">
-              {/* If user hasn't clicked play, show the poster thumbnail */}
-              {!isPlaying ? (
-                <div 
-                  onClick={() => setIsPlaying(true)}
-                  className="absolute inset-0 cursor-pointer group"
-                >
+            <div className="relative w-full aspect-video overflow-hidden bg-zinc-950 flex items-center justify-center">
+              {!videoError ? (
+                <video
+                  ref={videoRef}
+                  key={`${currentVideoUrl}-${activeGender}`}
+                  src={currentVideoUrl}
+                  poster={currentPosterUrl}
+                  autoPlay
+                  loop
+                  muted={isMuted}
+                  playsInline
+                  controls={false}
+                  onError={() => setVideoError(true)}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                /* High-Res Visual Frame Demonstration Fallback */
+                <div className="relative w-full h-full">
                   <img
-                    src={currentThumbnail}
+                    src={currentPosterUrl}
                     alt={exercise.name}
-                    onError={() => setImageError(true)}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 transition-colors flex flex-col items-center justify-center gap-3">
-                    <div className="w-16 h-16 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
-                      <Play size={26} fill="currentColor" className="ml-1" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col items-center justify-center text-center p-4">
+                    <div className="w-14 h-14 rounded-full bg-amber-400 text-black flex items-center justify-center mb-2 shadow-xl">
+                      <Sparkles size={24} />
                     </div>
-                    <span className="px-3 py-1 bg-black/70 backdrop-blur-md rounded-full text-xs font-mono font-bold text-amber-300 border border-amber-400/40">
-                      Click to Stream {coachGender === 'female' ? 'Female' : 'Male'} Movement Drill
-                    </span>
+                    <h4 className="text-white font-display font-bold text-base mb-1">
+                      {exercise.name} Movement Guide
+                    </h4>
+                    <p className="text-xs text-zinc-300 font-mono max-w-sm">
+                      Target: {exercise.targetMuscle} • {exercise.defaultSets} sets × {exercise.defaultRepsOrDuration}
+                    </p>
                   </div>
                 </div>
-              ) : (
-                <iframe
-                  key={`${activeVideoId}-${iframeKey}-${isMuted}`}
-                  src={primaryEmbedUrl}
-                  title={`${exercise.name} Movement Demonstration`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  className="absolute -top-[12%] -left-[2%] w-[104%] h-[124%] border-0 object-cover pointer-events-auto"
-                />
               )}
 
-              {/* Top HUD Overlay (Completely masks YouTube top channel/title bar) */}
-              <div className="absolute top-0 left-0 right-0 py-2.5 px-3 bg-gradient-to-b from-black via-black/80 to-transparent flex items-center justify-between pointer-events-none z-10">
-                <div className="flex items-center gap-1.5">
+              {/* Top HUD Overlay (Zero Channel Watermarks) */}
+              <div className="absolute top-0 left-0 right-0 p-3 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between pointer-events-none z-10">
+                <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <span className="text-[10px] font-mono font-bold text-zinc-200 tracking-wider uppercase">
-                    CultPulse Biomechanics Drill • {coachGender === 'female' ? 'Female Coach' : 'Male Coach'}
+                  <span className="text-[10px] font-mono font-bold text-zinc-200 uppercase tracking-wider">
+                    {activeGender === 'female' ? 'Coach Maya' : 'Coach Marcus'} • Biomechanics Feed
                   </span>
                 </div>
-                <span className="px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md text-[10px] font-mono text-amber-300 border border-amber-400/30">
+                <span className="px-2.5 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-[10px] font-mono text-amber-300 border border-amber-400/30">
                   {exercise.defaultSets} Sets × {exercise.defaultRepsOrDuration}
                 </span>
               </div>
 
-              {/* Bottom HUD Controls (Completely masks YouTube corner logo/buttons) */}
-              <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black via-black/80 to-transparent flex items-center justify-between z-10 pointer-events-auto">
+              {/* Bottom Video Controls Overlay */}
+              <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex items-center justify-between z-10">
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => setIsMuted(!isMuted)}
-                    className="px-2.5 py-1 rounded-md bg-black/80 hover:bg-black border border-zinc-700/80 text-[11px] font-mono text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors"
+                    onClick={togglePlayPause}
+                    id="btn-video-play-pause"
+                    className="px-2.5 py-1.5 rounded-md bg-black/70 hover:bg-black/90 border border-zinc-700/80 text-xs font-mono text-white flex items-center gap-1.5 transition-colors"
                   >
-                    {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
-                    <span>{isMuted ? 'Unmute Audio' : 'Muted'}</span>
+                    {isPlaying ? <Pause size={13} /> : <Play size={13} />}
+                    <span>{isPlaying ? 'Pause Drill' : 'Play Drill'}</span>
                   </button>
 
                   <button
-                    onClick={() => setIframeKey((k) => k + 1)}
-                    title="Reload video player (skips intro)"
-                    className="p-1 rounded-md bg-black/80 hover:bg-black border border-zinc-700/80 text-zinc-400 hover:text-white transition-colors"
+                    onClick={toggleMute}
+                    id="btn-video-mute"
+                    className="px-2.5 py-1.5 rounded-md bg-black/70 hover:bg-black/90 border border-zinc-700/80 text-xs font-mono text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors"
                   >
-                    <RefreshCw size={13} />
+                    {isMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                    <span>{isMuted ? 'Muted' : 'Sound On'}</span>
                   </button>
                 </div>
 
-                <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-300">
-                  <button
-                    onClick={handleOpenExternalVideo}
-                    className="px-2.5 py-1 rounded-md bg-amber-400 hover:bg-amber-500 text-black font-bold flex items-center gap-1 transition-colors"
-                  >
-                    <ExternalLink size={11} />
-                    <span>Watch Fullscreen</span>
-                  </button>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-mono text-zinc-300 bg-black/60 px-2 py-1 rounded-md border border-zinc-800">
+                    Form Mode: Strict 3-1-1
+                  </span>
                 </div>
               </div>
             </div>
@@ -303,7 +274,7 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
                   TEMPO PACING ENGINE (3-1-1 CADENCE)
                 </span>
                 <span className="px-3 py-1 bg-zinc-900 border border-zinc-700 rounded-lg text-xs font-mono text-white">
-                  Active Repetition: <strong className="text-amber-400 text-sm">#{repCount}</strong>
+                  Completed Reps: <strong className="text-amber-400 text-sm">#{repCount}</strong>
                 </span>
               </div>
 
@@ -312,7 +283,7 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
                 <div className={`w-28 h-28 rounded-full border-4 flex flex-col items-center justify-center transition-all duration-700 shadow-2xl ${
                   cadencePhase.includes('Eccentric')
                     ? 'border-blue-500 bg-blue-500/10 scale-95'
-                    : cadencePhase.includes('Stretch')
+                    : cadencePhase.includes('Isometric')
                     ? 'border-amber-400 bg-amber-400/20 scale-105'
                     : 'border-emerald-500 bg-emerald-500/20 scale-110'
                 }`}>
@@ -326,9 +297,9 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
                   </span>
                   <p className="text-[11px] text-zinc-400 max-w-xs">
                     {cadencePhase.includes('Eccentric') && 'Lower the resistance slowly under control. Resist gravity for 3 full seconds.'}
-                    {cadencePhase.includes('Stretch') && 'Hold the deep stretch position without bouncing. Maximize muscle fiber tension.'}
+                    {cadencePhase.includes('Isometric') && 'Hold peak stretch or lockout position without bouncing. Maintain tension.'}
                     {cadencePhase.includes('Concentric') && 'Drive explosively through the prime movers back to starting position.'}
-                    {cadencePhase.includes('Reset') && 'Breathe in, reset spinal posture, and begin the next repetition.'}
+                    {cadencePhase.includes('Reset') && 'Breathe deeply, reset posture, and initiate the next repetition.'}
                   </p>
                 </div>
               </div>
@@ -367,7 +338,7 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-1 border-t border-zinc-800/80">
             <p className="text-[11px] text-zinc-400">
-              <strong className="text-zinc-200">Coach Form Tip:</strong> Keep tension sustained throughout the entire concentric and 3-second eccentric phase.
+              <strong className="text-zinc-200">Coach Guidance:</strong> Keep tension sustained throughout the entire concentric drive and 3-second eccentric lower.
             </p>
 
             {onLogExercise && (
@@ -376,7 +347,8 @@ export const ExerciseVideoModal: React.FC<ExerciseVideoModalProps> = ({
                   onLogExercise(exercise);
                   onClose();
                 }}
-                className="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-black text-xs font-display font-bold rounded-lg flex items-center gap-1.5 transition-colors shrink-0 shadow-sm"
+                id="btn-modal-log-exercise"
+                className="px-4 py-2 bg-amber-400 hover:bg-amber-500 text-black text-xs font-display font-bold rounded-lg flex items-center gap-1.5 transition-colors shrink-0 shadow-xs"
               >
                 <CheckCircle2 size={14} />
                 <span>Log Exercise Routine</span>

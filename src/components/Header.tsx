@@ -3,6 +3,7 @@ import { LifeBuoy, Target, Sun, Moon, Globe } from 'lucide-react';
 import { NavTab, UserGoal, DietaryPreference } from '../types';
 import { USER_GOALS } from '../data/goalConfigs';
 import { useAppSettings } from '../services/appSettingsContext';
+import { getActiveUserGender, setActiveUserGender } from '../services/googleAuth';
 
 interface HeaderProps {
   activeTab: NavTab;
@@ -45,7 +46,21 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const { theme, toggleTheme, language, setLanguage, supportedLanguages, t } = useAppSettings();
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+  const [currentGender, setCurrentGender] = useState<'male' | 'female'>(() => getActiveUserGender());
   const langMenuRef = useRef<HTMLDivElement>(null);
+
+  // Sync gender on storage or custom event
+  useEffect(() => {
+    const handleGenderUpdate = () => {
+      setCurrentGender(getActiveUserGender());
+    };
+    window.addEventListener('storage', handleGenderUpdate);
+    window.addEventListener('cultpulse_gender_changed', handleGenderUpdate);
+    return () => {
+      window.removeEventListener('storage', handleGenderUpdate);
+      window.removeEventListener('cultpulse_gender_changed', handleGenderUpdate);
+    };
+  }, []);
 
   // Close language menu on outside click
   useEffect(() => {
@@ -123,6 +138,24 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           </button>
         )}
+
+        {/* Athlete Gender Demonstrator Quick Selector */}
+        <button
+          onClick={() => {
+            const nextGender = currentGender === 'male' ? 'female' : 'male';
+            setActiveUserGender(nextGender);
+            setCurrentGender(nextGender);
+            window.dispatchEvent(new Event('cultpulse_gender_changed'));
+          }}
+          id="header-gender-badge"
+          title={`Active Trainer/Video Demonstrator: ${currentGender === 'male' ? 'Male (Coach Marcus)' : 'Female (Coach Maya)'}. Click to switch anytime.`}
+          className="flex items-center gap-1 px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-300 text-[10px] font-mono font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors shadow-2xs"
+        >
+          <span>{currentGender === 'female' ? '👩' : '👨'}</span>
+          <span className="hidden sm:inline">
+            {currentGender === 'female' ? 'FEMALE' : 'MALE'}
+          </span>
+        </button>
 
         {/* Fitness Goal Quick Selector */}
         {onGoalClick && (

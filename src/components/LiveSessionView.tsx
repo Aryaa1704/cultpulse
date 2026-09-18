@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Heart,
   Flame,
@@ -18,15 +18,14 @@ import {
   Zap,
   Activity,
   CheckCircle2,
-  ExternalLink,
-  RefreshCw,
-  Maximize2,
+  Sparkles,
+  ShieldCheck
 } from 'lucide-react';
 import { Drill, WorkoutProtocol } from '../types';
 import { liveDrills } from '../data/mockData';
-import { getCoachGender, setCoachGender, CoachGender } from '../services/coachPreference';
+import { getActiveUserGender } from '../services/googleAuth';
 import { ExerciseVideoModal } from './ExerciseVideoModal';
-import { ExerciseItem, comprehensiveExerciseDatabase } from '../data/exerciseDatabase';
+import { comprehensiveExerciseDatabase } from '../data/exerciseDatabase';
 
 interface LiveSessionViewProps {
   currentProtocol?: WorkoutProtocol | null;
@@ -41,6 +40,11 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
   onEndSession,
   onOpenAIForm,
 }) => {
+  const [userGender, setUserGender] = useState<'male' | 'female'>(() => getActiveUserGender());
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const [selectedDrillModal, setSelectedDrillModal] = useState<any | null>(null);
+
   // Derive protocol-specific drills based on modality
   const dynamicDrills: Drill[] = useMemo(() => {
     const modality = currentProtocol?.modality || 'HIIT';
@@ -55,11 +59,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: 'Bodyweight',
           impact: 'LOW IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'gCzgc_RelBA',
-          femaleVideoEmbedId: 'ZWk19OVon2k',
-          startSeconds: 5,
+          imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Burpee.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Burpee.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'dance-2',
@@ -69,25 +72,23 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: 'High Tempo',
           impact: 'MODERATE',
-          imageUrl:
-            'https://images.unsplash.com/photo-1547153760-18fc86324498?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'oa_82zS7d-0',
-          femaleVideoEmbedId: 'm4n07nIqKFc',
-          startSeconds: 6,
+          imageUrl: 'https://images.unsplash.com/photo-1547153760-18fc86324498?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Interval_Push-ups.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Interval_Push-ups.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1547153760-18fc86324498?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'dance-3',
           number: '03/06',
-          name: 'Afrobeat Hip Rolls & Lateral Slide',
+          name: 'Cardio Core Sweeps & Lateral Slide',
           sets: 3,
           workSeconds: 45,
           load: 'Bodyweight',
           impact: 'MODERATE',
-          imageUrl:
-            'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'ZWk19OVon2k',
-          femaleVideoEmbedId: '7P2r6Yp8G5I',
-          startSeconds: 5,
+          imageUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Leg_raises_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Leg_raises_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'dance-4',
@@ -97,25 +98,23 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: 'High Intensity',
           impact: 'HIGH IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'gCzgc_RelBA',
-          femaleVideoEmbedId: 'ZWk19OVon2k',
-          startSeconds: 8,
+          imageUrl: 'https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Burpee.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Burpee.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'dance-5',
           number: '05/06',
-          name: 'Groove Drop & Floor Sweep',
+          name: 'Groove Drop & Isometric Squat',
           sets: 2,
           workSeconds: 45,
           load: 'Bodyweight',
           impact: 'MODERATE',
-          imageUrl:
-            'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'oa_82zS7d-0',
-          femaleVideoEmbedId: 'm4n07nIqKFc',
-          startSeconds: 6,
+          imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'dance-6',
@@ -125,11 +124,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 60,
           load: 'Recovery',
           impact: 'LOW IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'sTANio_2E0Q',
-          femaleVideoEmbedId: 'sTANio_2E0Q',
-          startSeconds: 5,
+          imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80',
         },
       ];
     }
@@ -144,11 +142,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: '16kg - 24kg',
           impact: 'HIGH IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'bEv6CCg2BC8',
-          femaleVideoEmbedId: 'aclHkVaku9U',
-          startSeconds: 6,
+          imageUrl: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'str-2',
@@ -158,11 +155,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: '20kg - 30kg',
           impact: 'MODERATE',
-          imageUrl:
-            'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'JCXUYuzwNrM',
-          femaleVideoEmbedId: 'UItWltVZZmE',
-          startSeconds: 8,
+          imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/62/Deadlift_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/62/Deadlift_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'str-3',
@@ -172,11 +168,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: '12kg - 18kg',
           impact: 'HIGH IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: '2yjwXTZQDDI',
-          femaleVideoEmbedId: 'qEwKCR5JCog',
-          startSeconds: 6,
+          imageUrl: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/69/Shoulder_press_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/69/Shoulder_press_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'str-4',
@@ -186,11 +181,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: '14kg - 20kg',
           impact: 'MODERATE',
-          imageUrl:
-            'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'roCP6wCXPqo',
-          femaleVideoEmbedId: '2m8VpS5s7U0',
-          startSeconds: 5,
+          imageUrl: 'https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Bent-over_row_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b2/Bent-over_row_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'str-5',
@@ -200,11 +194,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: 'Bodyweight',
           impact: 'MODERATE',
-          imageUrl:
-            'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'IODxDxX7oi4',
-          femaleVideoEmbedId: 'W4sF5tWvI_w',
-          startSeconds: 6,
+          imageUrl: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Interval_Push-ups.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Interval_Push-ups.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'str-6',
@@ -214,11 +207,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: 'Bodyweight',
           impact: 'LOW IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'pSHjTRCQxIw',
-          femaleVideoEmbedId: 'ASdvN_XEl_c',
-          startSeconds: 5,
+          imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Leg_raises_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Leg_raises_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&auto=format&fit=crop&q=80',
         },
       ];
     }
@@ -233,11 +225,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 50,
           load: 'Bodyweight',
           impact: 'LOW IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'g_tea8ZNk5A',
-          femaleVideoEmbedId: 'sTANio_2E0Q',
-          startSeconds: 5,
+          imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Interval_Push-ups.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Interval_Push-ups.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'yoga-2',
@@ -247,11 +238,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 50,
           load: 'Flexibility',
           impact: 'LOW IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'g_tea8ZNk5A',
-          femaleVideoEmbedId: 'sTANio_2E0Q',
-          startSeconds: 15,
+          imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'yoga-3',
@@ -261,11 +251,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: 'Isometric',
           impact: 'LOW IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: '2Y24b4Oq3gY',
-          femaleVideoEmbedId: 'sTANio_2E0Q',
-          startSeconds: 6,
+          imageUrl: 'https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'yoga-4',
@@ -275,11 +264,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 50,
           load: 'Flexibility',
           impact: 'LOW IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1552196563-552361a45935?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'g_tea8ZNk5A',
-          femaleVideoEmbedId: 'sTANio_2E0Q',
-          startSeconds: 25,
+          imageUrl: 'https://images.unsplash.com/photo-1552196563-552361a45935?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1552196563-552361a45935?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'yoga-5',
@@ -289,11 +277,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 45,
           load: 'Mobility',
           impact: 'LOW IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'g_tea8ZNk5A',
-          femaleVideoEmbedId: 'sTANio_2E0Q',
-          startSeconds: 35,
+          imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Leg_raises_-_exercise_demonstration_video.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Leg_raises_-_exercise_demonstration_video.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80',
         },
         {
           id: 'yoga-6',
@@ -303,222 +290,204 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           workSeconds: 60,
           load: 'Parasympathetic',
           impact: 'LOW IMPACT',
-          imageUrl:
-            'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&auto=format&fit=crop&q=80',
-          videoEmbedId: 'g_tea8ZNk5A',
-          femaleVideoEmbedId: 'sTANio_2E0Q',
-          startSeconds: 45,
+          imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=80',
+          videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Interval_Push-ups.webm',
+          femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Interval_Push-ups.webm',
+          femalePosterUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=80',
         },
       ];
     }
 
     // Default: HIIT & Conditioning
-    return liveDrills && liveDrills.length > 0
-      ? liveDrills
-      : [
-          {
-            id: 'hiit-1',
-            number: '01/06',
-            name: 'Explosive High Knees Burst',
-            sets: 3,
-            workSeconds: 45,
-            load: 'Cardio Max',
-            impact: 'HIGH IMPACT',
-            imageUrl:
-              'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&auto=format&fit=crop&q=80',
-            videoEmbedId: 'OAJ_J3EZrx8',
-            femaleVideoEmbedId: '8opcQdC-5gk',
-            startSeconds: 6,
-          },
-          {
-            id: 'hiit-2',
-            number: '02/06',
-            name: 'Dumbbell Thrusters (Squat to Press)',
-            sets: 3,
-            workSeconds: 45,
-            load: '10kg - 16kg',
-            impact: 'HIGH IMPACT',
-            imageUrl:
-              'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=400&auto=format&fit=crop&q=80',
-            videoEmbedId: 'L219ltL15zk',
-            femaleVideoEmbedId: 'M0u_QW_v7nI',
-            startSeconds: 6,
-          },
-          {
-            id: 'hiit-3',
-            number: '03/06',
-            name: 'Full Chest-to-Floor Burpees',
-            sets: 3,
-            workSeconds: 45,
-            load: 'Bodyweight',
-            impact: 'HIGH IMPACT',
-            imageUrl:
-              'https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=400&auto=format&fit=crop&q=80',
-            videoEmbedId: '1ExU8CRl4eU',
-            femaleVideoEmbedId: '1B_mZ1h0l4M',
-            startSeconds: 6,
-          },
-          {
-            id: 'hiit-4',
-            number: '04/06',
-            name: 'Rapid Mountain Climbers',
-            sets: 3,
-            workSeconds: 45,
-            load: 'Core Speed',
-            impact: 'HIGH IMPACT',
-            imageUrl:
-              'https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=400&auto=format&fit=crop&q=80',
-            videoEmbedId: 'de_tv0WjK54',
-            femaleVideoEmbedId: 'nmwgirgXLYM',
-            startSeconds: 5,
-          },
-          {
-            id: 'hiit-5',
-            number: '05/06',
-            name: 'Kettlebell / Dumbbell Speed Swings',
-            sets: 3,
-            workSeconds: 45,
-            load: '16kg - 20kg',
-            impact: 'MODERATE',
-            imageUrl:
-              'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=400&auto=format&fit=crop&q=80',
-            videoEmbedId: 'roCP6wCXPqo',
-            femaleVideoEmbedId: '2m8VpS5s7U0',
-            startSeconds: 5,
-          },
-          {
-            id: 'hiit-6',
-            number: '06/06',
-            name: 'Plank Shoulder Taps & Hold',
-            sets: 2,
-            workSeconds: 45,
-            load: 'Core Stability',
-            impact: 'LOW IMPACT',
-            imageUrl:
-              'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&auto=format&fit=crop&q=80',
-            videoEmbedId: 'pSHjTRCQxIw',
-            femaleVideoEmbedId: 'ASdvN_XEl_c',
-            startSeconds: 5,
-          },
-        ];
+    return [
+      {
+        id: 'hiit-1',
+        number: '01/06',
+        name: 'Full Chest-to-Floor Burpees Burst',
+        sets: 3,
+        workSeconds: 45,
+        load: 'Cardio Max',
+        impact: 'HIGH IMPACT',
+        imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80',
+        videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Burpee.webm',
+        femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/3/39/Burpee.webm',
+        femalePosterUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'hiit-2',
+        number: '02/06',
+        name: 'Dumbbell Thrusters (Squat to Press)',
+        sets: 3,
+        workSeconds: 45,
+        load: '10kg - 16kg',
+        impact: 'HIGH IMPACT',
+        imageUrl: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&auto=format&fit=crop&q=80',
+        videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+        femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/5/5c/Squat_-_exercise_demonstration_video.webm',
+        femalePosterUrl: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=800&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'hiit-3',
+        number: '03/06',
+        name: 'Rapid Mountain Climbers & Core Drive',
+        sets: 3,
+        workSeconds: 45,
+        load: 'Core Speed',
+        impact: 'HIGH IMPACT',
+        imageUrl: 'https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=800&auto=format&fit=crop&q=80',
+        videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Leg_raises_-_exercise_demonstration_video.webm',
+        femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Leg_raises_-_exercise_demonstration_video.webm',
+        femalePosterUrl: 'https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=800&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'hiit-4',
+        number: '04/06',
+        name: 'Tempo Pushups with Core Tension',
+        sets: 3,
+        workSeconds: 45,
+        load: 'Bodyweight',
+        impact: 'HIGH IMPACT',
+        imageUrl: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&auto=format&fit=crop&q=80',
+        videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Interval_Push-ups.webm',
+        femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/9/98/Interval_Push-ups.webm',
+        femalePosterUrl: 'https://images.unsplash.com/photo-1598971639058-fab3c3109a00?w=800&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'hiit-5',
+        number: '05/06',
+        name: 'Kettlebell / Dumbbell Russian Swings',
+        sets: 3,
+        workSeconds: 45,
+        load: '16kg - 20kg',
+        impact: 'MODERATE',
+        imageUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80',
+        videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/62/Deadlift_-_exercise_demonstration_video.webm',
+        femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/6/62/Deadlift_-_exercise_demonstration_video.webm',
+        femalePosterUrl: 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&auto=format&fit=crop&q=80',
+      },
+      {
+        id: 'hiit-6',
+        number: '06/06',
+        name: 'Plank Shoulder Taps & Iso Hold',
+        sets: 2,
+        workSeconds: 45,
+        load: 'Core Stability',
+        impact: 'LOW IMPACT',
+        imageUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&auto=format&fit=crop&q=80',
+        videoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Leg_raises_-_exercise_demonstration_video.webm',
+        femaleVideoUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/bf/Leg_raises_-_exercise_demonstration_video.webm',
+        femalePosterUrl: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&auto=format&fit=crop&q=80',
+      },
+    ];
   }, [currentProtocol]);
 
   const totalDuration = (currentProtocol?.duration || 20) * 60;
   const protocolCalories = currentProtocol?.calories || 320;
-  const instructor = currentProtocol?.instructor || 'Coach';
+  
+  // Single Coach matching active user gender (no dual buttons)
+  const coachName = userGender === 'female' ? 'Coach Maya (Pro Trainer)' : 'Coach Marcus (Elite Strength)';
   const resolvedAthleteName = activeUserName?.split(' ')[0] || 'Athlete';
 
   const [isPlaying, setIsPlaying] = useState(true);
   const [secondsRemaining, setSecondsRemaining] = useState(45);
   const [totalSecondsRemaining, setTotalSecondsRemaining] = useState(totalDuration);
   const [currentDrillIndex, setCurrentDrillIndex] = useState(0);
-  const [currentSet, setCurrentSet] = useState(1);
+  const [isRestPhase, setIsRestPhase] = useState(false);
+  const [restSecondsRemaining, setRestSecondsRemaining] = useState(15);
 
-  // Coach Gender preference & video controls
-  const [coachGender, setLocalCoachGender] = useState<CoachGender>(getCoachGender());
-  const [isAudioMuted, setIsAudioMuted] = useState(true);
-  const [iframeKey, setIframeKey] = useState(0);
-  const [selectedExerciseForModal, setSelectedExerciseForModal] = useState<ExerciseItem | null>(null);
-
-  useEffect(() => {
-    const handleGenderChange = (e: any) => {
-      if (e.detail?.gender) {
-        setLocalCoachGender(e.detail.gender);
-      }
-    };
-    window.addEventListener('cultpulse:coach-gender-change', handleGenderChange);
-    return () => window.removeEventListener('cultpulse:coach-gender-change', handleGenderChange);
-  }, []);
-
-  const handleToggleCoachGender = (newGender: CoachGender) => {
-    setLocalCoachGender(newGender);
-    setCoachGender(newGender);
-    setIframeKey((k) => k + 1);
-  };
-
-  // Dynamic real-time telemetry starting at authentic values:
-  // Heart rate starts at warmup rate (115 BPM) and rises naturally with intervals
   const [heartRate, setHeartRate] = useState(115);
-  // Active calories start at 0 and accrue in real-time as user exercises
   const [activeCalories, setActiveCalories] = useState(0);
   const [isVoiceOn, setIsVoiceOn] = useState(true);
 
-  // Dynamic Coach Cues with real instructor and athlete names
+  // Dynamic Coach Cues
   const coachCues = useMemo(() => {
     return [
-      `${instructor.toUpperCase()}: "3, 2, 1... Push the pace, ${resolvedAthleteName}!"`,
-      `${instructor.toUpperCase()}: "Keep your core braced and breathe, ${resolvedAthleteName}!"`,
-      `${instructor.toUpperCase()}: "Drive through your heels, beautiful form ${resolvedAthleteName}!"`,
-      `${instructor.toUpperCase()}: "15 seconds left in this round, stay relentless!"`,
-      `${instructor.toUpperCase()}: "Exhale on exertion, inhale on the reset, ${resolvedAthleteName}!"`,
-      `${instructor.toUpperCase()}: "Great energy! Finish this interval strong!"`,
+      `${coachName.split(' ')[1].toUpperCase()}: "3, 2, 1... Push the pace, ${resolvedAthleteName}!"`,
+      `${coachName.split(' ')[1].toUpperCase()}: "Keep your core braced and control the movement!"`,
+      `${coachName.split(' ')[1].toUpperCase()}: "Halfway through this interval! Dig deep!"`,
+      `${coachName.split(' ')[1].toUpperCase()}: "Outstanding technique, ${resolvedAthleteName}! Finish strong!"`,
+      `${coachName.split(' ')[1].toUpperCase()}: "Smooth cadence, breathe through your diaphragm!"`,
     ];
-  }, [instructor, resolvedAthleteName]);
+  }, [coachName, resolvedAthleteName]);
 
   const [coachCue, setCoachCue] = useState(coachCues[0]);
 
-  const currentDrill: Drill = dynamicDrills[currentDrillIndex] || dynamicDrills[0];
-  const nextDrill: Drill | undefined = dynamicDrills[currentDrillIndex + 1];
+  const currentDrill = dynamicDrills[currentDrillIndex] || dynamicDrills[0];
+  const nextDrill = currentDrillIndex < dynamicDrills.length - 1 ? dynamicDrills[currentDrillIndex + 1] : null;
 
-  // Resolve current active video embed ID based on drill and selected coach gender
-  const activeVideoId = useMemo(() => {
-    if (coachGender === 'female' && currentDrill.femaleVideoEmbedId) {
-      return currentDrill.femaleVideoEmbedId;
-    }
-    if (currentDrill.videoEmbedId) {
-      return currentDrill.videoEmbedId;
-    }
-    if (coachGender === 'female' && currentProtocol?.femaleVideoEmbedId) {
-      return currentProtocol.femaleVideoEmbedId;
-    }
-    return currentProtocol?.videoEmbedId || 'OAJ_J3EZrx8';
-  }, [coachGender, currentDrill, currentProtocol]);
+  // Active video & poster based on athlete gender
+  const activeVideoUrl = userGender === 'female' 
+    ? (currentDrill.femaleVideoUrl || currentDrill.videoUrl)
+    : currentDrill.videoUrl;
 
-  const startSeconds = currentDrill.startSeconds || currentProtocol?.startSeconds || 6;
-  const embedUrl = `https://www.youtube.com/embed/${activeVideoId}?start=${startSeconds}&autoplay=${isPlaying ? 1 : 0}&mute=${isAudioMuted ? 1 : 0}&loop=1&playlist=${activeVideoId}&controls=1&modestbranding=1&rel=0&playsinline=1&enablejsapi=1`;
-  const hqThumbnail = `https://img.youtube.com/vi/${activeVideoId}/hqdefault.jpg`;
+  const activePosterUrl = userGender === 'female'
+    ? (currentDrill.femalePosterUrl || currentDrill.imageUrl)
+    : currentDrill.imageUrl;
 
-  // Timer interval simulation
+  // Control video playback in sync with session state
   useEffect(() => {
-    let interval: any = null;
+    if (videoRef.current) {
+      if (isPlaying && !isRestPhase) {
+        videoRef.current.play().catch(() => {});
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [isPlaying, isRestPhase, currentDrillIndex]);
+
+  // Interval and Telemetry Timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
     if (isPlaying) {
       interval = setInterval(() => {
-        setSecondsRemaining((prev) => {
-          if (prev <= 1) {
-            // Next drill or set
-            if (currentDrillIndex < dynamicDrills.length - 1) {
-              setCurrentDrillIndex((idx) => idx + 1);
+        if (!isRestPhase) {
+          setSecondsRemaining((prev) => {
+            if (prev <= 1) {
+              // Trigger rest transition
+              if (currentDrillIndex < dynamicDrills.length - 1) {
+                setIsRestPhase(true);
+                setRestSecondsRemaining(15);
+              } else {
+                // Workout completed
+                onEndSession(Math.round(activeCalories));
+              }
               return 45;
-            } else {
-              setIsPlaying(false);
-              return 0;
             }
-          }
-          return prev - 1;
-        });
+            return prev - 1;
+          });
+        } else {
+          setRestSecondsRemaining((prev) => {
+            if (prev <= 1) {
+              // End rest, start next drill
+              setIsRestPhase(false);
+              setCurrentDrillIndex((idx) => Math.min(dynamicDrills.length - 1, idx + 1));
+              setSecondsRemaining(45);
+              return 15;
+            }
+            return prev - 1;
+          });
+        }
 
         setTotalSecondsRemaining((prev) => Math.max(0, prev - 1));
 
-        // Real-time calorie accumulation based on protocol burn rate
+        // Real-time calorie burn accumulation
         setActiveCalories((prev) => {
           const burnPerSecond = protocolCalories / Math.max(300, totalDuration);
-          const newKcal = prev + burnPerSecond;
-          return Math.round(newKcal * 10) / 10;
+          return Math.round((prev + burnPerSecond) * 10) / 10;
         });
 
         // Dynamic physiological heart rate calculation
         setHeartRate((prev) => {
-          // Warm up gradually towards target zone (135 - 165 BPM)
-          const targetHR = 145 + Math.sin(Date.now() / 6000) * 12;
+          const targetHR = isRestPhase ? 122 : 148 + Math.sin(Date.now() / 6000) * 10;
           const step = (targetHR - prev) * 0.08 + (Math.random() * 2 - 1);
-          return Math.min(172, Math.max(108, Math.round(prev + step)));
+          return Math.min(172, Math.max(105, Math.round(prev + step)));
         });
       }, 1000);
     }
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isPlaying, currentDrillIndex, dynamicDrills.length, protocolCalories, totalDuration]);
+  }, [isPlaying, isRestPhase, currentDrillIndex, dynamicDrills.length, protocolCalories, totalDuration, activeCalories, onEndSession]);
 
   // Coach cues rotation
   useEffect(() => {
@@ -526,7 +495,7 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
       if (isPlaying && isVoiceOn) {
         setCoachCue(coachCues[Math.floor(Math.random() * coachCues.length)]);
       }
-    }, 11000);
+    }, 10000);
     return () => clearInterval(cueTimer);
   }, [isPlaying, isVoiceOn, coachCues]);
 
@@ -539,6 +508,7 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
   const handlePrevDrill = () => {
     if (currentDrillIndex > 0) {
       setCurrentDrillIndex((prev) => prev - 1);
+      setIsRestPhase(false);
       setSecondsRemaining(45);
     }
   };
@@ -546,6 +516,7 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
   const handleNextDrill = () => {
     if (currentDrillIndex < dynamicDrills.length - 1) {
       setCurrentDrillIndex((prev) => prev + 1);
+      setIsRestPhase(false);
       setSecondsRemaining(45);
     }
   };
@@ -556,38 +527,6 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
 
   const handleForward10 = () => {
     setSecondsRemaining((prev) => Math.max(1, prev - 10));
-  };
-
-  const handleOpenDetailedModal = () => {
-    const matched = comprehensiveExerciseDatabase.find(
-      (e) => e.name.toLowerCase().includes(currentDrill.name.toLowerCase()) || currentDrill.name.toLowerCase().includes(e.name.toLowerCase())
-    );
-    if (matched) {
-      setSelectedExerciseForModal(matched);
-    } else {
-      setSelectedExerciseForModal({
-        id: currentDrill.id,
-        name: currentDrill.name,
-        muscleGroup: 'Full Body',
-        category: 'Strength',
-        targetMuscle: 'Prime Movers & Core',
-        equipment: currentDrill.load || 'Bodyweight',
-        difficulty: 'Intermediate',
-        defaultSets: currentDrill.sets,
-        defaultRepsOrDuration: `${currentDrill.workSeconds}s`,
-        caloriesBurnPerHour: 420,
-        videoEmbedId: activeVideoId,
-        femaleVideoEmbedId: currentDrill.femaleVideoEmbedId,
-        startSeconds: startSeconds,
-        imageUrl: currentDrill.imageUrl,
-        description: `High-intensity movement drill designed to build cardiovascular resilience, muscular endurance, and neuromuscular coordination.`,
-        formCues: [
-          'Maintain a braced core with neutral lumbar spine alignment.',
-          'Control both concentric driving phase and eccentric lowering tempo.',
-          'Maintain rhythmic breathing: exhale during exertion, inhale during recovery.',
-        ],
-      });
-    }
   };
 
   return (
@@ -605,34 +544,18 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
             {currentProtocol ? currentProtocol.title : 'High Octane Metabolic Blast'}
           </h2>
           <div className="text-xs text-[#767676] dark:text-zinc-400">
-            Instructor: <span className="font-semibold text-[#1B1C1C] dark:text-white">{instructor}</span> • Athlete: <span className="font-semibold text-[#1B1C1C] dark:text-white">{resolvedAthleteName}</span>
+            Instructor: <span className="font-semibold text-[#1B1C1C] dark:text-white">{coachName}</span> • Athlete: <span className="font-semibold text-[#1B1C1C] dark:text-white">{resolvedAthleteName} ({userGender === 'male' ? 'Male 👨' : 'Female 👩'})</span>
           </div>
         </div>
 
-        {/* Coach Gender Switcher in Top Bar */}
-        <div className="flex items-center gap-1.5 bg-white dark:bg-[#1C1C1E] p-1 rounded-xl border border-[#E5E5E5] dark:border-neutral-800 shadow-2xs">
-          <span className="text-[10px] font-mono text-zinc-500 dark:text-zinc-400 px-1 hidden sm:inline">Trainer:</span>
-          <button
-            onClick={() => handleToggleCoachGender('male')}
-            className={`px-2 py-1 rounded-lg text-xs font-mono font-bold flex items-center gap-1 transition-colors ${
-              coachGender === 'male'
-                ? 'bg-amber-400 text-black shadow-xs'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white'
-            }`}
-          >
-            <span>👨 Male</span>
-          </button>
-          <button
-            onClick={() => handleToggleCoachGender('female')}
-            className={`px-2 py-1 rounded-lg text-xs font-mono font-bold flex items-center gap-1 transition-colors ${
-              coachGender === 'female'
-                ? 'bg-amber-400 text-black shadow-xs'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white'
-            }`}
-          >
-            <span>👩 Female</span>
-          </button>
-        </div>
+        <button
+          onClick={() => onEndSession(Math.round(activeCalories))}
+          id="btn-header-end-workout"
+          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-semibold text-xs rounded-lg transition-colors flex items-center gap-1.5 shadow-xs"
+        >
+          <Square size={13} fill="currentColor" />
+          <span>End Workout</span>
+        </button>
       </div>
 
       {/* Real-time Telemetry Strip (3 cards in 1 row) */}
@@ -681,123 +604,114 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
         </div>
       </div>
 
-      {/* Video Workout Stage - Interactive Video Stream Player */}
-      <div className="relative aspect-16/10 rounded-2xl overflow-hidden bg-black border border-[#E5E5E5] dark:border-zinc-800 shadow-md">
-        {isPlaying ? (
-          /* Live Streaming Video Iframe with Anti-Branding Crop */
-          <div className="relative w-full h-full overflow-hidden bg-black">
-            <iframe
-              key={`${activeVideoId}-${currentDrillIndex}-${iframeKey}-${isAudioMuted}`}
-              src={embedUrl}
-              title={`${currentDrill.name} Demonstration`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              allowFullScreen
-              className="absolute -top-[12%] -left-[2%] w-[104%] h-[124%] border-0 object-cover pointer-events-auto"
+      {/* Video Workout Stage - Plays Direct Movement Video */}
+      <div className="relative aspect-16/10 rounded-2xl overflow-hidden bg-black border border-[#E5E5E5] dark:border-zinc-800 shadow-lg">
+        {!isRestPhase ? (
+          /* Active Work Interval: HD Video Playing */
+          <div className="relative w-full h-full">
+            <video
+              ref={videoRef}
+              key={`${activeVideoUrl}-${currentDrillIndex}`}
+              src={activeVideoUrl}
+              poster={activePosterUrl}
+              autoPlay={isPlaying}
+              loop
+              muted={isMuted}
+              playsInline
+              controls={false}
+              className="w-full h-full object-cover brightness-95 contrast-105"
             />
-          </div>
-        ) : (
-          /* Poster View when paused */
-          <div className="relative w-full h-full bg-black cursor-pointer group" onClick={() => setIsPlaying(true)}>
-            <img
-              src={hqThumbnail}
-              alt={currentDrill.name}
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = currentDrill.imageUrl;
-              }}
-              className="w-full h-full object-cover brightness-85 group-hover:scale-105 transition-transform duration-500"
-              referrerPolicy="no-referrer"
-            />
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors flex flex-col items-center justify-center gap-2">
-              <div className="w-14 h-14 rounded-full bg-amber-400 text-black flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
-                <Play size={24} fill="currentColor" className="ml-1" />
+
+            {/* Dark overlay gradients for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/60 pointer-events-none"></div>
+
+            {/* Top Badges */}
+            <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-medium font-mono">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span>{currentDrill.number} • {currentDrill.name}</span>
               </div>
-              <span className="px-3 py-1 rounded-full bg-black/80 backdrop-blur-md text-xs font-mono font-bold text-amber-300 border border-amber-400/30">
-                Click to Resume {coachGender === 'female' ? 'Female' : 'Male'} Video Stream
-              </span>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsMuted(!isMuted)}
+                  className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-mono flex items-center gap-1"
+                >
+                  {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+                  <span>{isMuted ? 'Muted' : 'Sound On'}</span>
+                </button>
+
+                <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-mono">
+                  <Zap size={12} className="text-yellow-400" />
+                  <span>{currentDrill.impact}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Audio Coach Cue Bar */}
+            <div className="absolute bottom-3 left-3 right-3">
+              <div className="px-3 py-2 rounded-lg bg-black/75 backdrop-blur-md border border-white/15 text-white/90 text-xs flex items-center justify-between">
+                <div className="flex items-center gap-2 truncate pr-2">
+                  <Volume2 size={15} className="text-amber-400 shrink-0" />
+                  <span className="font-mono text-[11px] truncate tracking-tight">{coachCue}</span>
+                </div>
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+              </div>
             </div>
           </div>
+        ) : (
+          /* Rest Transition Card */
+          <div className="relative w-full h-full bg-[#0d0e10] p-6 flex flex-col items-center justify-center text-center">
+            <div className="w-16 h-16 rounded-full bg-amber-400/20 text-amber-400 border border-amber-400/40 flex items-center justify-center mb-3 shadow-xl animate-pulse">
+              <span className="text-2xl font-display font-bold">{restSecondsRemaining}s</span>
+            </div>
+            <h3 className="font-display font-bold text-xl text-white mb-1">
+              Recovery & Hydration Period
+            </h3>
+            <p className="text-xs text-zinc-400 max-w-sm mb-4">
+              Take deep diaphragmatic breaths, sip water, and reset your form posture.
+            </p>
+
+            {nextDrill && (
+              <div className="p-3 bg-zinc-900 border border-zinc-700/80 rounded-xl flex items-center gap-3 text-left max-w-md w-full">
+                <img
+                  src={userGender === 'female' ? (nextDrill.femalePosterUrl || nextDrill.imageUrl) : nextDrill.imageUrl}
+                  alt={nextDrill.name}
+                  className="w-12 h-12 rounded-lg object-cover"
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] font-mono text-amber-400 uppercase font-bold">NEXT DRILL</div>
+                  <div className="font-semibold text-xs text-white truncate">{nextDrill.name}</div>
+                  <div className="text-[11px] text-zinc-400">{nextDrill.load} • {nextDrill.impact}</div>
+                </div>
+              </div>
+            )}
+          </div>
         )}
-
-        {/* Top Overlay Strip (Completely covers YouTube title & channel brand) */}
-        <div className="absolute top-0 left-0 right-0 p-3 bg-gradient-to-b from-black via-black/80 to-transparent flex items-center justify-between pointer-events-none z-10">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
-            <span className="text-xs font-display font-bold text-white tracking-wide">
-              {currentDrill.name}
-            </span>
-            <span className="px-2 py-0.5 rounded-md bg-white/15 backdrop-blur-md text-[10px] font-mono text-amber-300 border border-white/20">
-              {coachGender === 'female' ? 'Female Coach' : 'Male Coach'}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-1.5 pointer-events-auto">
-            <button
-              onClick={handleOpenDetailedModal}
-              title="Full Biomechanics & Form Analysis"
-              className="px-2.5 py-1 rounded-lg bg-black/80 hover:bg-black border border-white/20 text-white text-[11px] font-mono font-semibold flex items-center gap-1 transition-colors"
-            >
-              <Maximize2 size={12} />
-              <span className="hidden sm:inline">Biomechanics Cues</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Bottom HUD Controls (Completely covers YouTube bottom corner logo & provides live toggles) */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black via-black/85 to-transparent flex items-center justify-between z-10 pointer-events-auto">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setIsAudioMuted(!isAudioMuted)}
-              title={isAudioMuted ? 'Unmute Video Audio' : 'Mute Video Audio'}
-              className="px-2.5 py-1 rounded-lg bg-black/80 hover:bg-black border border-white/20 text-[11px] font-mono text-zinc-200 hover:text-white flex items-center gap-1.5 transition-colors"
-            >
-              {isAudioMuted ? <VolumeX size={13} /> : <Volume2 size={13} />}
-              <span>{isAudioMuted ? 'Unmute Drill' : 'Muted'}</span>
-            </button>
-
-            <button
-              onClick={() => setIframeKey((k) => k + 1)}
-              title="Reload Drill Video (Skips Intro)"
-              className="p-1.5 rounded-lg bg-black/80 hover:bg-black border border-white/20 text-zinc-300 hover:text-white transition-colors"
-            >
-              <RefreshCw size={13} />
-            </button>
-          </div>
-
-          {/* Audio Coach Cue Bar */}
-          <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-lg bg-black/80 border border-white/15 text-white/90 text-[11px] font-mono max-w-sm truncate">
-            <Volume2 size={13} className="text-amber-400 shrink-0" />
-            <span className="truncate">{coachCue}</span>
-          </div>
-
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => handleToggleCoachGender(coachGender === 'male' ? 'female' : 'male')}
-              title="Switch between Male and Female coach video"
-              className="px-2.5 py-1 rounded-lg bg-amber-400 hover:bg-amber-500 text-black text-[11px] font-mono font-bold flex items-center gap-1 transition-colors shadow-xs"
-            >
-              <span>{coachGender === 'female' ? 'Switch to 👨 Male' : 'Switch to 👩 Female'}</span>
-            </button>
-          </div>
-        </div>
       </div>
 
-      {/* Interval Progress Bar & Status */}
-      <div className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-4 shadow-2xs space-y-3">
+      {/* Interval Progress & Big Timer */}
+      <div className="bg-white dark:bg-[#1C1C1E] border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-4 shadow-2xs space-y-2">
         <div className="flex items-center justify-between text-xs">
-          <span className="font-mono font-semibold tracking-wider text-[#1B1C1C] dark:text-neutral-100">
-            WORK (45S)
+          <span className="font-semibold text-[#1B1C1C] dark:text-neutral-200">
+            {isRestPhase ? 'RECOVERY TRANSITION' : `ACTIVE INTERVAL (${currentDrill.workSeconds}S WORK)`}
           </span>
-          <span className="text-[#767676] dark:text-neutral-400 font-medium">
-            Drill {currentDrillIndex + 1} of {dynamicDrills.length} • Set {currentSet}/3
+          <span className="font-mono text-[#767676] dark:text-neutral-400">
+            Drill {currentDrillIndex + 1} of {dynamicDrills.length}
           </span>
-          <span className="font-mono text-[#767676] dark:text-neutral-400">REST (15S)</span>
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full bg-[#E5E5E5] dark:bg-neutral-800 h-2 rounded-full overflow-hidden">
+        <div className="w-full bg-[#E5E5E5] dark:bg-neutral-800 h-2.5 rounded-full overflow-hidden">
           <div
-            className="bg-[#242424] dark:bg-amber-400 h-full transition-all duration-300"
-            style={{ width: `${Math.max(5, ((45 - secondsRemaining) / 45) * 100)}%` }}
+            className={`h-full transition-all duration-300 ${
+              isRestPhase ? 'bg-blue-500' : 'bg-[#242424] dark:bg-amber-400'
+            }`}
+            style={{
+              width: isRestPhase
+                ? `${Math.max(5, ((15 - restSecondsRemaining) / 15) * 100)}%`
+                : `${Math.max(5, ((45 - secondsRemaining) / 45) * 100)}%`,
+            }}
           ></div>
         </div>
 
@@ -805,10 +719,10 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
         <div className="flex items-end justify-between pt-1">
           <div>
             <div className="text-[10px] font-mono tracking-widest text-[#767676] dark:text-neutral-400 uppercase">
-              INTERVAL TIMER
+              {isRestPhase ? 'REST COUNTDOWN' : 'INTERVAL TIMER'}
             </div>
             <div className="font-display font-bold text-3xl md:text-4xl text-[#1B1C1C] dark:text-neutral-100 tracking-tight">
-              00:{secondsRemaining.toString().padStart(2, '0')}{' '}
+              00:{(isRestPhase ? restSecondsRemaining : secondsRemaining).toString().padStart(2, '0')}{' '}
               <span className="text-sm font-mono text-[#767676] dark:text-neutral-400 font-medium">SEC</span>
             </div>
           </div>
@@ -882,9 +796,11 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
       {nextDrill && (
         <div className="bg-[#FBF9F9] dark:bg-neutral-900/60 border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-3.5 flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-white dark:bg-neutral-800 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#4A4A4A] dark:text-neutral-300 shrink-0">
-              <Dumbbell size={18} />
-            </div>
+            <img
+              src={userGender === 'female' ? (nextDrill.femalePosterUrl || nextDrill.imageUrl) : nextDrill.imageUrl}
+              alt={nextDrill.name}
+              className="w-11 h-11 rounded-lg object-cover border border-[#E5E5E5] dark:border-neutral-700"
+            />
             <div>
               <div className="text-[10px] font-mono text-[#767676] dark:text-neutral-400 uppercase">
                 UP NEXT • 00:15 Transition
@@ -897,8 +813,15 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
           </div>
 
           <button
-            onClick={() => setCurrentDrillIndex(currentDrillIndex + 1)}
-            aria-label="Preview next drill"
+            onClick={() => {
+              // Find matching database exercise to open modal
+              const match = comprehensiveExerciseDatabase.find(
+                (e) => e.name.toLowerCase().includes(nextDrill.name.toLowerCase()) || nextDrill.name.toLowerCase().includes(e.name.toLowerCase())
+              ) || comprehensiveExerciseDatabase[0];
+              setSelectedDrillModal(match);
+            }}
+            aria-label="Preview next drill video"
+            title="Inspect full biomechanics drill"
             className="w-8 h-8 rounded-full border border-[#E5E5E5] dark:border-neutral-700 bg-white dark:bg-neutral-800 flex items-center justify-center text-[#767676] dark:text-neutral-400 hover:text-[#1B1C1C] dark:hover:text-white hover:border-[#242424] dark:hover:border-neutral-400 transition-colors"
           >
             <Eye size={15} />
@@ -920,7 +843,7 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
         >
           {isVoiceOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
           <span className="font-semibold text-xs mt-1">Voice: {isVoiceOn ? 'ON' : 'OFF'}</span>
-          <span className="text-[10px] text-[#767676] dark:text-neutral-400">Coach Cues</span>
+          <span className="text-[10px] text-[#767676] dark:text-neutral-400">Coach Guidance</span>
         </button>
 
         {/* AI Form Check */}
@@ -946,12 +869,13 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
         </button>
       </div>
 
-      {/* Exercise Video Modal for Detailed Biomechanics Cues */}
-      {selectedExerciseForModal && (
+      {/* Drill Inspection Modal if user taps preview */}
+      {selectedDrillModal && (
         <ExerciseVideoModal
-          exercise={selectedExerciseForModal}
-          isOpen={!!selectedExerciseForModal}
-          onClose={() => setSelectedExerciseForModal(null)}
+          exercise={selectedDrillModal}
+          isOpen={true}
+          onClose={() => setSelectedDrillModal(null)}
+          userGender={userGender}
         />
       )}
     </div>

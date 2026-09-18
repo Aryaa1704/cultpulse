@@ -14,6 +14,8 @@ import {
   googleSignIn,
   signUpWithEmail,
   signInWithEmail,
+  getActiveUserGender,
+  setActiveUserGender,
 } from '../services/googleAuth';
 
 interface AuthModalProps {
@@ -24,6 +26,7 @@ interface AuthModalProps {
     email: string | null;
     displayName: string | null;
     photoURL?: string | null;
+    gender?: 'male' | 'female';
   }) => void;
   onContinueAsGuest?: () => void;
 }
@@ -38,6 +41,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [gender, setGender] = useState<'male' | 'female'>(() => getActiveUserGender());
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -50,11 +54,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     try {
       const res = await googleSignIn();
       if (res?.user) {
+        setActiveUserGender(gender, res.user.uid);
         onAuthSuccess({
           uid: res.user.uid,
           email: res.user.email,
           displayName: res.user.displayName || (res.user.email ? res.user.email.split('@')[0] : 'Athlete'),
           photoURL: res.user.photoURL,
+          gender,
         });
         onClose();
       }
@@ -90,16 +96,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     try {
       if (mode === 'signup') {
         const session = await signUpWithEmail(email, password, fullName);
+        setActiveUserGender(gender, session.uid);
         setSuccessMessage('Account created successfully! Welcome to CultPulse.');
         setTimeout(() => {
-          onAuthSuccess(session);
+          onAuthSuccess({ ...session, gender });
           onClose();
         }, 600);
       } else {
         const session = await signInWithEmail(email, password);
+        setActiveUserGender(gender, session.uid);
         setSuccessMessage('Welcome back!');
         setTimeout(() => {
-          onAuthSuccess(session);
+          onAuthSuccess({ ...session, gender });
           onClose();
         }, 500);
       }
@@ -195,6 +203,51 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <span>{successMessage}</span>
           </div>
         )}
+
+        {/* Athlete Profile / Gender Preference Selector */}
+        <div className="space-y-1.5 p-3 bg-[#F7F7F8] dark:bg-[#232427] border border-[#E5E5E5] dark:border-[#323438] rounded-xl">
+          <div className="flex items-center justify-between text-[11px]">
+            <span className="font-semibold text-[#1B1C1C] dark:text-zinc-200">
+              Training Profile & Video Demonstrator
+            </span>
+            <span className="text-[10px] font-mono text-amber-600 dark:text-amber-400 font-bold">REQUIRED</span>
+          </div>
+          <p className="text-[10px] text-[#767676] dark:text-zinc-400 leading-tight">
+            Personalizes all workout videos, live drills, and coach demonstrations to your gender.
+          </p>
+          <div className="grid grid-cols-2 gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => {
+                setGender('male');
+                setActiveUserGender('male');
+              }}
+              className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border ${
+                gender === 'male'
+                  ? 'bg-[#242424] text-white border-[#242424] dark:bg-amber-400 dark:text-black dark:border-amber-400 shadow-xs'
+                  : 'bg-white dark:bg-[#1C1D1F] text-[#4A4A4A] dark:text-zinc-300 border-[#E0E0E0] dark:border-[#383A3D] hover:bg-[#F0F0F0]'
+              }`}
+            >
+              <span>👨</span>
+              <span>Male Athlete</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setGender('female');
+                setActiveUserGender('female');
+              }}
+              className={`py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all border ${
+                gender === 'female'
+                  ? 'bg-[#242424] text-white border-[#242424] dark:bg-amber-400 dark:text-black dark:border-amber-400 shadow-xs'
+                  : 'bg-white dark:bg-[#1C1D1F] text-[#4A4A4A] dark:text-zinc-300 border-[#E0E0E0] dark:border-[#383A3D] hover:bg-[#F0F0F0]'
+              }`}
+            >
+              <span>👩</span>
+              <span>Female Athlete</span>
+            </button>
+          </div>
+        </div>
 
         {/* Primary OAuth Action: Google Sign In */}
         <button
@@ -310,12 +363,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <button
               type="button"
               onClick={() => {
+                setActiveUserGender(gender);
                 onContinueAsGuest();
                 onClose();
               }}
               className="text-[#767676] dark:text-zinc-400 hover:text-[#1B1C1C] dark:hover:text-white underline"
             >
-              Continue as Guest
+              Continue as Guest ({gender === 'male' ? 'Male 👨' : 'Female 👩'})
             </button>
           )}
         </div>
