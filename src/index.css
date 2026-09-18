@@ -7,11 +7,13 @@
   --font-sans: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-html, body, #root {
+html {
   width: 100%;
+  max-width: 100%;
   min-height: 100%;
   overflow-x: hidden;
   box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
 }
 
 *, *::before, *::after {
@@ -24,7 +26,19 @@ body {
   color: #1b1c1c;
   -webkit-font-smoothing: antialiased;
   transition: background-color 0.2s ease, color 0.2s ease;
+  width: 100%;
+  max-width: 100%;
   overflow-x: hidden;
+  position: relative;
+  touch-action: pan-y pinch-zoom;
+}
+
+#root {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100%;
+  overflow-x: hidden;
+  position: relative;
 }
 
 html.dark body {

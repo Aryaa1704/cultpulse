@@ -415,9 +415,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF9F9] dark:bg-[#0E0F10] text-[#1B1C1C] dark:text-[#EAEAEA] flex flex-col items-center transition-colors w-full overflow-x-hidden">
+    <div className="min-h-screen bg-[#FBF9F9] dark:bg-[#0E0F10] text-[#1B1C1C] dark:text-[#EAEAEA] flex flex-col items-center transition-colors w-full max-w-full overflow-x-hidden">
       {/* Container Frame */}
-      <div className="w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto flex flex-col min-h-screen relative shadow-2xs bg-[#FBF9F9] dark:bg-[#141517] border-x border-transparent dark:border-[#232427] transition-colors">
+      <div className="w-full max-w-full lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl mx-auto flex flex-col min-h-screen relative shadow-2xs bg-[#FBF9F9] dark:bg-[#141517] border-x border-transparent dark:border-[#232427] transition-colors overflow-x-hidden">
         {/* Sticky Header */}
         <Header
           activeTab={activeTab}

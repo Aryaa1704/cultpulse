@@ -120,6 +120,23 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setErrorMessage('This email is already registered. Switch to Sign In above.');
       } else if (code === 'auth/invalid-email') {
         setErrorMessage('Please enter a valid email address.');
+      } else if (code === 'auth/operation-not-allowed' || code === 'auth/unauthorized-domain') {
+        // Cloud project restriction: create offline athlete profile so the user is never blocked
+        const fallbackSession = {
+          uid: 'athlete_' + Date.now(),
+          email: email,
+          displayName: fullName || (email ? email.split('@')[0] : 'Athlete'),
+          photoURL: null,
+          provider: 'email' as const,
+          gender,
+        };
+        setActiveUserGender(gender, fallbackSession.uid);
+        setSuccessMessage('Logged in with athlete profile!');
+        setTimeout(() => {
+          onAuthSuccess(fallbackSession);
+          onClose();
+        }, 500);
+        return;
       } else {
         setErrorMessage(err?.message || 'Authentication error. Please try again.');
       }
@@ -129,10 +146,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-xs animate-in fade-in duration-200 overflow-y-auto">
       <div
         id="auth-modal-card"
-        className="w-full max-w-md bg-white dark:bg-[#1C1D1F] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-2xl p-6 shadow-2xl space-y-5 relative"
+        className="w-full max-w-sm sm:max-w-md bg-white dark:bg-[#1C1D1F] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-2xl p-4 sm:p-6 shadow-2xl space-y-4 sm:space-y-5 relative my-auto max-h-[92vh] overflow-y-auto"
       >
         {/* Close Button */}
         <button

@@ -122,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-b border-[#E5E5E5] dark:border-[#252628] px-2.5 sm:px-6 py-2 sm:py-2.5 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full flex items-center justify-between transition-colors">
+    <header className="sticky top-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-b border-[#E5E5E5] dark:border-[#252628] px-2 sm:px-6 py-2 sm:py-2.5 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full max-w-full flex items-center justify-between transition-colors overflow-hidden">
       {/* Brand & Section Indicator */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink">
         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#242424] dark:bg-amber-400 text-white dark:text-black flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
@@ -140,21 +140,21 @@ export const Header: React.FC<HeaderProps> = ({
           <span className="font-display font-bold text-base sm:text-lg tracking-tight text-[#1B1C1C] dark:text-white truncate">
             CultPulse
           </span>
-          <span className="hidden xs:inline text-[9px] sm:text-[11px] font-mono tracking-widest text-[#767676] dark:text-zinc-400 font-medium uppercase truncate">
+          <span className="hidden md:inline text-[9px] sm:text-[11px] font-mono tracking-widest text-[#767676] dark:text-zinc-400 font-medium uppercase truncate">
             {getSubTitle()}
           </span>
         </div>
       </div>
 
       {/* Action Controls & Utilities */}
-      <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-1.5 shrink min-w-0">
         {/* Dietary Preference Quick Selector (Icon only on mobile, text on desktop) */}
         {onDietClick && (
           <button
             onClick={onDietClick}
             id="header-diet-badge"
             title="Change Dietary Lifestyle (Veg / Eggetarian / Non-Veg)"
-            className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 text-[10px] font-mono font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors shadow-2xs"
+            className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 text-[10px] font-mono font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors shadow-2xs shrink-0"
           >
             <span className="text-xs leading-none">
               {dietaryPreference === 'veg' ? '🥦' : dietaryPreference === 'eggetarian' ? '🥚' : '🍗'}
@@ -170,7 +170,7 @@ export const Header: React.FC<HeaderProps> = ({
           onClick={handleToggleGender}
           id="header-gender-badge"
           title={`Active Demonstrator: ${currentGender === 'male' ? 'Coach Marcus (Male)' : 'Coach Maya (Female)'}. Click to switch.`}
-          className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-300 text-[10px] font-mono font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors shadow-2xs"
+          className="flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-300 text-[10px] font-mono font-bold hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors shadow-2xs shrink-0"
         >
           <span className="text-xs leading-none">{currentGender === 'female' ? '👩' : '👨'}</span>
           <span className="hidden sm:inline">
@@ -198,12 +198,12 @@ export const Header: React.FC<HeaderProps> = ({
           id="btn-toggle-theme"
           title={theme === 'dark' ? t('header_theme_default') : t('header_theme_dark')}
           aria-label={theme === 'dark' ? 'Switch to Default Theme' : 'Switch to Dark Theme'}
-          className="p-1.5 rounded-full bg-white dark:bg-[#1E1F21] border border-[#E5E5E5] dark:border-[#2C2D30] text-[#4A4A4A] dark:text-zinc-200 hover:text-[#1B1C1C] dark:hover:text-white transition-colors"
+          className="p-1 sm:p-1.5 rounded-full bg-white dark:bg-[#1E1F21] border border-[#E5E5E5] dark:border-[#2C2D30] text-[#4A4A4A] dark:text-zinc-200 hover:text-[#1B1C1C] dark:hover:text-white transition-colors shrink-0"
         >
           {theme === 'dark' ? (
-            <Sun size={14} className="text-amber-400" />
+            <Sun size={13} className="text-amber-400" />
           ) : (
-            <Moon size={14} className="text-[#4A4A4A]" />
+            <Moon size={13} className="text-[#4A4A4A]" />
           )}
         </button>
 

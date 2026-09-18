@@ -23,9 +23,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
     <nav
       id="bottom-nav"
       aria-label="Main Navigation"
-      className="fixed bottom-0 inset-x-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-t border-[#E5E5E5] dark:border-[#252628] transition-colors pt-1.5 pb-[max(env(safe-area-inset-bottom,0px),0.5rem)]"
+      className="fixed bottom-0 inset-x-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-t border-[#E5E5E5] dark:border-[#252628] transition-colors pt-1 pb-[max(env(safe-area-inset-bottom,0px),0.5rem)] max-w-full overflow-hidden"
     >
-      <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-2 sm:px-6 flex items-center justify-around">
+      <div className="w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-1 sm:px-6 flex items-center justify-between">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -35,7 +35,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
               key={tab.id}
               id={`nav-btn-${tab.id}`}
               onClick={() => onChangeTab(tab.id)}
-              className={`flex flex-col items-center justify-center py-1 px-2 sm:px-4 transition-colors rounded-xl min-w-[56px] sm:min-w-[72px] ${
+              className={`flex-1 min-w-0 flex flex-col items-center justify-center py-1 px-0.5 sm:px-3 transition-colors rounded-xl ${
                 isActive
                   ? 'text-[#1B1C1C] dark:text-white bg-black/5 dark:bg-white/5'
                   : 'text-[#767676] dark:text-zinc-400 hover:text-[#242424] dark:hover:text-zinc-200 hover:bg-black/2 dark:hover:bg-white/2'
@@ -43,7 +43,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
             >
               <div className="relative">
                 <Icon
-                  size={20}
+                  size={19}
                   strokeWidth={isActive ? 2.3 : 1.7}
                   className={`transition-transform duration-150 ${isActive ? 'scale-105' : ''}`}
                 />
@@ -52,7 +52,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
                 )}
               </div>
               <span
-                className={`text-[10px] sm:text-[11px] mt-1 tracking-tight font-medium ${
+                className={`text-[9px] sm:text-[11px] mt-0.5 tracking-tight font-medium truncate max-w-full px-0.5 ${
                   isActive
                     ? 'font-semibold text-[#1B1C1C] dark:text-white'
                     : 'text-[#767676] dark:text-zinc-400'

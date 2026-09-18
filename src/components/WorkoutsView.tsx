@@ -179,31 +179,37 @@ export const WorkoutsView: React.FC<WorkoutsViewProps> = ({
       </div>
 
       {/* Mode Switcher Tabs: Exercise Movement Library vs Guided Class Protocols */}
-      <div className="bg-white dark:bg-[#18191B] border border-[#E5E5E5] dark:border-zinc-800 rounded-2xl p-1.5 shadow-2xs flex items-center gap-2">
+      <div className="bg-white dark:bg-[#18191B] border border-[#E5E5E5] dark:border-zinc-800 rounded-2xl p-1 sm:p-1.5 shadow-2xs flex items-center gap-1.5 sm:gap-2 w-full max-w-full">
         <button
           onClick={() => setActiveTabMode('exercises')}
           id="tab-mode-exercises"
-          className={`flex-1 py-2.5 px-3 rounded-xl font-display font-bold text-xs flex items-center justify-center gap-2 transition-all ${
+          className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl font-display font-bold text-xs flex items-center justify-center gap-1.5 sm:gap-2 transition-all min-w-0 ${
             activeTabMode === 'exercises'
               ? 'bg-[#1B1C1C] dark:bg-amber-400 text-white dark:text-black shadow-xs'
               : 'text-[#555] dark:text-zinc-400 hover:bg-[#F2F2F2] dark:hover:bg-zinc-800'
           }`}
         >
-          <Tv size={15} />
-          <span>Exercise Video Library ({filteredExercises.length})</span>
+          <Tv size={14} className="shrink-0" />
+          <span className="truncate">
+            <span className="sm:hidden">Videos ({filteredExercises.length})</span>
+            <span className="hidden sm:inline">Exercise Video Library ({filteredExercises.length})</span>
+          </span>
         </button>
 
         <button
           onClick={() => setActiveTabMode('protocols')}
           id="tab-mode-protocols"
-          className={`flex-1 py-2.5 px-3 rounded-xl font-display font-bold text-xs flex items-center justify-center gap-2 transition-all ${
+          className={`flex-1 py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl font-display font-bold text-xs flex items-center justify-center gap-1.5 sm:gap-2 transition-all min-w-0 ${
             activeTabMode === 'protocols'
               ? 'bg-[#1B1C1C] dark:bg-amber-400 text-white dark:text-black shadow-xs'
               : 'text-[#555] dark:text-zinc-400 hover:bg-[#F2F2F2] dark:hover:bg-zinc-800'
           }`}
         >
-          <Layers size={15} />
-          <span>Guided Class Protocols ({filteredProtocols.length})</span>
+          <Layers size={14} className="shrink-0" />
+          <span className="truncate">
+            <span className="sm:hidden">Classes ({filteredProtocols.length})</span>
+            <span className="hidden sm:inline">Guided Class Protocols ({filteredProtocols.length})</span>
+          </span>
         </button>
       </div>
 
