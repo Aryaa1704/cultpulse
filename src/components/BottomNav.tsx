@@ -23,9 +23,9 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
     <nav
       id="bottom-nav"
       aria-label="Main Navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-t border-[#E5E5E5] dark:border-[#252628] px-3 sm:px-6 py-2 max-w-5xl lg:max-w-6xl mx-auto transition-colors"
+      className="fixed bottom-0 inset-x-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-t border-[#E5E5E5] dark:border-[#252628] transition-colors pt-1.5 pb-[max(env(safe-area-inset-bottom,0px),0.5rem)]"
     >
-      <div className="flex items-center justify-around">
+      <div className="max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto px-2 sm:px-6 flex items-center justify-around">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -35,10 +35,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
               key={tab.id}
               id={`nav-btn-${tab.id}`}
               onClick={() => onChangeTab(tab.id)}
-              className={`flex flex-col items-center justify-center py-1 px-3 transition-colors rounded-lg ${
+              className={`flex flex-col items-center justify-center py-1 px-2 sm:px-4 transition-colors rounded-xl min-w-[56px] sm:min-w-[72px] ${
                 isActive
-                  ? 'text-[#1B1C1C] dark:text-white'
-                  : 'text-[#767676] dark:text-zinc-400 hover:text-[#242424] dark:hover:text-zinc-200'
+                  ? 'text-[#1B1C1C] dark:text-white bg-black/5 dark:bg-white/5'
+                  : 'text-[#767676] dark:text-zinc-400 hover:text-[#242424] dark:hover:text-zinc-200 hover:bg-black/2 dark:hover:bg-white/2'
               }`}
             >
               <div className="relative">
@@ -52,7 +52,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, onChangeTab }) 
                 )}
               </div>
               <span
-                className={`text-[10px] mt-1 tracking-tight font-medium ${
+                className={`text-[10px] sm:text-[11px] mt-1 tracking-tight font-medium ${
                   isActive
                     ? 'font-semibold text-[#1B1C1C] dark:text-white'
                     : 'text-[#767676] dark:text-zinc-400'

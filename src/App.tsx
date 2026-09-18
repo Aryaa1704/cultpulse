@@ -415,9 +415,9 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FBF9F9] dark:bg-[#0E0F10] text-[#1B1C1C] dark:text-[#EAEAEA] flex flex-col items-center transition-colors">
+    <div className="min-h-screen bg-[#FBF9F9] dark:bg-[#0E0F10] text-[#1B1C1C] dark:text-[#EAEAEA] flex flex-col items-center transition-colors w-full overflow-x-hidden">
       {/* Container Frame */}
-      <div className="w-full max-w-5xl lg:max-w-6xl mx-auto flex flex-col min-h-screen relative shadow-2xs bg-[#FBF9F9] dark:bg-[#141517] border-x border-transparent dark:border-[#232427] transition-colors">
+      <div className="w-full max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto flex flex-col min-h-screen relative shadow-2xs bg-[#FBF9F9] dark:bg-[#141517] border-x border-transparent dark:border-[#232427] transition-colors">
         {/* Sticky Header */}
         <Header
           activeTab={activeTab}
@@ -438,7 +438,7 @@ export default function App() {
         />
 
         {/* Main Content Area */}
-        <main className="flex-1 px-3 sm:px-6 pt-3">
+        <main className="flex-1 px-3 sm:px-6 md:px-8 pt-3 pb-24 sm:pb-28 w-full max-w-full overflow-x-hidden">
           {(activeTab === 'diary' || activeTab === 'today') && (
             <DiaryView
               currentDate={getFormattedDate()}

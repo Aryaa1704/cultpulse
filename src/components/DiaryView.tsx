@@ -166,22 +166,22 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
         </div>
 
         {/* 3 Metric Breakdown */}
-        <div className="grid grid-cols-3 gap-2 border-t border-b border-[#E5E5E5] dark:border-[#2C2D30] py-3.5 mb-5">
-          <div className="border-r border-[#E5E5E5] dark:border-[#2C2D30] pr-2">
-            <div className="text-[11px] text-[#767676] dark:text-[#9E9E9E]">{t('diary_daily_budget')}</div>
-            <div className="font-display font-bold text-lg text-[#1B1C1C] dark:text-white">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 border-t border-b border-[#E5E5E5] dark:border-[#2C2D30] py-3 sm:py-3.5 mb-5">
+          <div className="border-r border-[#E5E5E5] dark:border-[#2C2D30] pr-1 sm:pr-2">
+            <div className="text-[10px] sm:text-[11px] text-[#767676] dark:text-[#9E9E9E] truncate">{t('diary_daily_budget')}</div>
+            <div className="font-display font-bold text-base sm:text-lg text-[#1B1C1C] dark:text-white truncate">
               {dailyGoal.toLocaleString()}
             </div>
           </div>
-          <div className="border-r border-[#E5E5E5] dark:border-[#2C2D30] px-2">
-            <div className="text-[11px] text-[#767676] dark:text-[#9E9E9E]">{t('diary_consumed')}</div>
-            <div className="font-display font-bold text-lg text-[#1B1C1C] dark:text-white">
+          <div className="border-r border-[#E5E5E5] dark:border-[#2C2D30] px-1 sm:px-2">
+            <div className="text-[10px] sm:text-[11px] text-[#767676] dark:text-[#9E9E9E] truncate">{t('diary_consumed')}</div>
+            <div className="font-display font-bold text-base sm:text-lg text-[#1B1C1C] dark:text-white truncate">
               - {totalFoodLogged.toLocaleString()}
             </div>
           </div>
-          <div className="pl-2">
-            <div className="text-[11px] text-[#767676] dark:text-[#9E9E9E]">{t('diary_burned')}</div>
-            <div className="font-display font-bold text-lg text-[#1B1C1C] dark:text-white">
+          <div className="pl-1 sm:pl-2">
+            <div className="text-[10px] sm:text-[11px] text-[#767676] dark:text-[#9E9E9E] truncate">{t('diary_burned')}</div>
+            <div className="font-display font-bold text-base sm:text-lg text-[#1B1C1C] dark:text-white truncate">
               + {burnSynced.toLocaleString()}
             </div>
           </div>
@@ -193,74 +193,74 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
             <span className="text-[11px] font-mono font-medium tracking-widest text-[#767676] dark:text-[#9E9E9E] uppercase">
               MACRO SPLIT
             </span>
-            <span className="text-[11px] font-mono text-[#767676] dark:text-[#9E9E9E]">50C / 25P / 25F Ratio</span>
+            <span className="text-[10px] sm:text-[11px] font-mono text-[#767676] dark:text-[#9E9E9E]">50C / 25P / 25F Ratio</span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2.5">
             {/* Carbs */}
-            <div className="bg-[#FBF9F9] dark:bg-[#232427] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-lg p-3">
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="font-semibold text-[11px] tracking-wide text-[#1B1C1C] dark:text-white">
+            <div className="bg-[#FBF9F9] dark:bg-[#232427] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-lg p-2 sm:p-3">
+              <div className="flex items-center justify-between text-xs mb-1 sm:mb-1.5">
+                <span className="font-semibold text-[10px] sm:text-[11px] tracking-wide text-[#1B1C1C] dark:text-white truncate">
                   {t('scanner_carbs').toUpperCase()}
                 </span>
-                <span className="text-[11px] font-mono bg-[#E5E5E5] dark:bg-[#34363B] text-[#242424] dark:text-zinc-200 px-1.5 py-0.5 rounded-xs font-semibold">
+                <span className="text-[10px] sm:text-[11px] font-mono bg-[#E5E5E5] dark:bg-[#34363B] text-[#242424] dark:text-zinc-200 px-1 py-0.5 rounded-xs font-semibold">
                   {carbsPct}%
                 </span>
               </div>
-              <div className="w-full bg-[#E5E5E5] dark:bg-[#34363B] h-1.5 rounded-full overflow-hidden mb-2">
+              <div className="w-full bg-[#E5E5E5] dark:bg-[#34363B] h-1.5 rounded-full overflow-hidden mb-1.5 sm:mb-2">
                 <div
                   className="bg-[#242424] dark:bg-amber-400 h-full transition-all duration-300"
                   style={{ width: `${carbsPct}%` }}
                 ></div>
               </div>
-              <div className="font-display font-bold text-sm text-[#1B1C1C] dark:text-white">
+              <div className="font-display font-bold text-xs sm:text-sm text-[#1B1C1C] dark:text-white">
                 {Math.round(totalCarbs)}g
               </div>
-              <div className="text-[10px] text-[#767676] dark:text-[#9E9E9E]">of {targetCarbs}g</div>
+              <div className="text-[9px] sm:text-[10px] text-[#767676] dark:text-[#9E9E9E] truncate">of {targetCarbs}g</div>
             </div>
 
             {/* Protein */}
-            <div className="bg-[#FBF9F9] dark:bg-[#232427] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-lg p-3">
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="font-semibold text-[11px] tracking-wide text-[#1B1C1C] dark:text-white">
+            <div className="bg-[#FBF9F9] dark:bg-[#232427] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-lg p-2 sm:p-3">
+              <div className="flex items-center justify-between text-xs mb-1 sm:mb-1.5">
+                <span className="font-semibold text-[10px] sm:text-[11px] tracking-wide text-[#1B1C1C] dark:text-white truncate">
                   {t('scanner_protein').toUpperCase()}
                 </span>
-                <span className="text-[11px] font-mono bg-[#E5E5E5] dark:bg-[#34363B] text-[#242424] dark:text-zinc-200 px-1.5 py-0.5 rounded-xs font-semibold">
+                <span className="text-[10px] sm:text-[11px] font-mono bg-[#E5E5E5] dark:bg-[#34363B] text-[#242424] dark:text-zinc-200 px-1 py-0.5 rounded-xs font-semibold">
                   {proteinPct}%
                 </span>
               </div>
-              <div className="w-full bg-[#E5E5E5] dark:bg-[#34363B] h-1.5 rounded-full overflow-hidden mb-2">
+              <div className="w-full bg-[#E5E5E5] dark:bg-[#34363B] h-1.5 rounded-full overflow-hidden mb-1.5 sm:mb-2">
                 <div
                   className="bg-[#242424] dark:bg-emerald-400 h-full transition-all duration-300"
                   style={{ width: `${proteinPct}%` }}
                 ></div>
               </div>
-              <div className="font-display font-bold text-sm text-[#1B1C1C] dark:text-white">
+              <div className="font-display font-bold text-xs sm:text-sm text-[#1B1C1C] dark:text-white">
                 {Math.round(totalProtein)}g
               </div>
-              <div className="text-[10px] text-[#767676] dark:text-[#9E9E9E]">of {targetProtein}g</div>
+              <div className="text-[9px] sm:text-[10px] text-[#767676] dark:text-[#9E9E9E] truncate">of {targetProtein}g</div>
             </div>
 
             {/* Fats */}
-            <div className="bg-[#FBF9F9] dark:bg-[#232427] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-lg p-3">
-              <div className="flex items-center justify-between text-xs mb-1.5">
-                <span className="font-semibold text-[11px] tracking-wide text-[#1B1C1C] dark:text-white">
+            <div className="bg-[#FBF9F9] dark:bg-[#232427] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-lg p-2 sm:p-3">
+              <div className="flex items-center justify-between text-xs mb-1 sm:mb-1.5">
+                <span className="font-semibold text-[10px] sm:text-[11px] tracking-wide text-[#1B1C1C] dark:text-white truncate">
                   {t('scanner_fats').toUpperCase()}
                 </span>
-                <span className="text-[11px] font-mono bg-[#E5E5E5] dark:bg-[#34363B] text-[#242424] dark:text-zinc-200 px-1.5 py-0.5 rounded-xs font-semibold">
+                <span className="text-[10px] sm:text-[11px] font-mono bg-[#E5E5E5] dark:bg-[#34363B] text-[#242424] dark:text-zinc-200 px-1 py-0.5 rounded-xs font-semibold">
                   {fatsPct}%
                 </span>
               </div>
-              <div className="w-full bg-[#E5E5E5] dark:bg-[#34363B] h-1.5 rounded-full overflow-hidden mb-2">
+              <div className="w-full bg-[#E5E5E5] dark:bg-[#34363B] h-1.5 rounded-full overflow-hidden mb-1.5 sm:mb-2">
                 <div
                   className="bg-[#242424] dark:bg-rose-400 h-full transition-all duration-300"
                   style={{ width: `${fatsPct}%` }}
                 ></div>
               </div>
-              <div className="font-display font-bold text-sm text-[#1B1C1C] dark:text-white">
+              <div className="font-display font-bold text-xs sm:text-sm text-[#1B1C1C] dark:text-white">
                 {Math.round(totalFats)}g
               </div>
-              <div className="text-[10px] text-[#767676] dark:text-[#9E9E9E]">of {targetFats}g</div>
+              <div className="text-[9px] sm:text-[10px] text-[#767676] dark:text-[#9E9E9E] truncate">of {targetFats}g</div>
             </div>
           </div>
         </div>
@@ -372,24 +372,24 @@ export const DiaryView: React.FC<DiaryViewProps> = ({
       </div>
 
       {/* Google Workspace Cloud Sync Card */}
-      <div className="bg-white dark:bg-[#1A1B1D] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-xl p-3.5 flex items-center justify-between shadow-2xs transition-colors">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-[#242424] dark:bg-zinc-800 text-white flex items-center justify-center font-bold text-xs">
+      <div className="bg-white dark:bg-[#1A1B1D] border border-[#E5E5E5] dark:border-[#2C2D30] rounded-xl p-3 sm:p-3.5 flex items-center justify-between shadow-2xs transition-colors gap-2">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-[#242424] dark:bg-zinc-800 text-white flex items-center justify-center font-bold text-xs shrink-0">
             G
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-1.5 text-xs">
-              <span className="font-semibold text-[#1B1C1C] dark:text-white">Google Workspace Hub</span>
-              <span className="px-1.5 py-0.2 bg-[#F2F2F2] dark:bg-[#232427] text-[9px] font-mono rounded-xs text-[#767676] dark:text-[#9E9E9E]">
+              <span className="font-semibold text-[#1B1C1C] dark:text-white truncate">Google Workspace Hub</span>
+              <span className="px-1.5 py-0.2 bg-[#F2F2F2] dark:bg-[#232427] text-[9px] font-mono rounded-xs text-[#767676] dark:text-[#9E9E9E] shrink-0">
                 5 SERVICES
               </span>
             </div>
-            <div className="text-[11px] text-[#767676] dark:text-[#9E9E9E]">Drive • Sheets • Calendar • Contacts • Gmail</div>
+            <div className="text-[10px] sm:text-[11px] text-[#767676] dark:text-[#9E9E9E] truncate">Drive • Sheets • Calendar • Contacts • Gmail</div>
           </div>
         </div>
         <button
           onClick={onOpenWorkspace}
-          className="py-1.5 px-2.5 bg-[#F2F2F2] dark:bg-[#232427] hover:bg-[#242424] dark:hover:bg-white hover:text-white dark:hover:text-[#1B1C1C] rounded-lg text-xs font-semibold text-[#242424] dark:text-zinc-200 transition-colors"
+          className="py-1.5 px-2.5 bg-[#F2F2F2] dark:bg-[#232427] hover:bg-[#242424] dark:hover:bg-white hover:text-white dark:hover:text-[#1B1C1C] rounded-lg text-xs font-semibold text-[#242424] dark:text-zinc-200 transition-colors shrink-0"
         >
           Open Sync
         </button>

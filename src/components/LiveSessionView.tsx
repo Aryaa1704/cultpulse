@@ -559,47 +559,47 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
       </div>
 
       {/* Real-time Telemetry Strip (3 cards in 1 row) */}
-      <div className="grid grid-cols-3 gap-2 bg-white dark:bg-[#1C1C1E] border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-3 shadow-2xs">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2 bg-white dark:bg-[#1C1C1E] border border-[#E5E5E5] dark:border-neutral-800 rounded-xl p-2 sm:p-3 shadow-2xs">
         {/* Heart Rate */}
-        <div className="flex items-center gap-2 border-r border-[#E5E5E5] dark:border-neutral-800 pr-2">
-          <div className="w-8 h-8 rounded-md bg-[#FBF9F9] dark:bg-neutral-900 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#242424] dark:text-neutral-200 shrink-0">
-            <Heart size={16} className="text-red-600 animate-pulse" />
+        <div className="flex items-center gap-1.5 sm:gap-2 border-r border-[#E5E5E5] dark:border-neutral-800 pr-1 sm:pr-2 min-w-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-[#FBF9F9] dark:bg-neutral-900 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#242424] dark:text-neutral-200 shrink-0">
+            <Heart size={14} className="text-red-600 animate-pulse" />
           </div>
-          <div>
-            <div className="font-display font-bold text-sm text-[#1B1C1C] dark:text-neutral-100 flex items-baseline gap-1">
+          <div className="min-w-0">
+            <div className="font-display font-bold text-xs sm:text-sm text-[#1B1C1C] dark:text-neutral-100 flex items-baseline gap-0.5 sm:gap-1 truncate">
               <span>{heartRate}</span>
-              <span className="text-[10px] font-mono text-[#767676] dark:text-neutral-400">BPM</span>
+              <span className="text-[9px] sm:text-[10px] font-mono text-[#767676] dark:text-neutral-400">BPM</span>
             </div>
-            <div className="text-[10px] text-[#767676] dark:text-neutral-400 truncate">
-              {heartRate > 150 ? 'Zone 4 (Peak)' : heartRate > 130 ? 'Zone 3 (Aerobic)' : 'Zone 2 (Warmup)'}
+            <div className="text-[9px] sm:text-[10px] text-[#767676] dark:text-neutral-400 truncate">
+              {heartRate > 150 ? 'Zone 4 (Peak)' : heartRate > 130 ? 'Zone 3' : 'Zone 2'}
             </div>
           </div>
         </div>
 
         {/* Burned Real-Time */}
-        <div className="flex items-center gap-2 border-r border-[#E5E5E5] dark:border-neutral-800 px-2">
-          <div className="w-8 h-8 rounded-md bg-[#FBF9F9] dark:bg-neutral-900 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#242424] dark:text-neutral-200 shrink-0">
-            <Flame size={16} className="text-amber-600" />
+        <div className="flex items-center gap-1.5 sm:gap-2 border-r border-[#E5E5E5] dark:border-neutral-800 px-1 sm:px-2 min-w-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-[#FBF9F9] dark:bg-neutral-900 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#242424] dark:text-neutral-200 shrink-0">
+            <Flame size={14} className="text-amber-600" />
           </div>
-          <div>
-            <div className="font-display font-bold text-sm text-[#1B1C1C] dark:text-neutral-100 flex items-baseline gap-1">
+          <div className="min-w-0">
+            <div className="font-display font-bold text-xs sm:text-sm text-[#1B1C1C] dark:text-neutral-100 flex items-baseline gap-0.5 sm:gap-1 truncate">
               <span>{Math.round(activeCalories)}</span>
-              <span className="text-[10px] font-mono text-[#767676] dark:text-neutral-400">KCAL</span>
+              <span className="text-[9px] sm:text-[10px] font-mono text-[#767676] dark:text-neutral-400">KCAL</span>
             </div>
-            <div className="text-[10px] text-[#767676] dark:text-neutral-400 truncate">Active Burn</div>
+            <div className="text-[9px] sm:text-[10px] text-[#767676] dark:text-neutral-400 truncate">Active Burn</div>
           </div>
         </div>
 
         {/* Remaining Time */}
-        <div className="flex items-center gap-2 pl-2">
-          <div className="w-8 h-8 rounded-md bg-[#FBF9F9] dark:bg-neutral-900 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#242424] dark:text-neutral-200 shrink-0">
-            <Clock size={16} className="text-[#4A4A4A] dark:text-neutral-400" />
+        <div className="flex items-center gap-1.5 sm:gap-2 pl-1 sm:pl-2 min-w-0">
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-md bg-[#FBF9F9] dark:bg-neutral-900 border border-[#E5E5E5] dark:border-neutral-700 flex items-center justify-center text-[#242424] dark:text-neutral-200 shrink-0">
+            <Clock size={14} className="text-[#4A4A4A] dark:text-neutral-400" />
           </div>
-          <div>
-            <div className="font-display font-bold text-sm text-[#1B1C1C] dark:text-neutral-100">
+          <div className="min-w-0">
+            <div className="font-display font-bold text-xs sm:text-sm text-[#1B1C1C] dark:text-neutral-100 truncate">
               {formatTime(totalSecondsRemaining)}
             </div>
-            <div className="text-[10px] font-mono text-[#767676] dark:text-neutral-400 uppercase">REMAINING</div>
+            <div className="text-[9px] sm:text-[10px] font-mono text-[#767676] dark:text-neutral-400 uppercase truncate">REMAINING</div>
           </div>
         </div>
       </div>
@@ -626,22 +626,22 @@ export const LiveSessionView: React.FC<LiveSessionViewProps> = ({
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/60 pointer-events-none"></div>
 
             {/* Top Badges */}
-            <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
-              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-medium font-mono">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>{currentDrill.number} • {currentDrill.name}</span>
+            <div className="absolute top-2 sm:top-3 left-2 sm:left-3 right-2 sm:right-3 flex items-center justify-between gap-1 flex-wrap">
+              <div className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-xs font-medium font-mono min-w-0 max-w-[65%] truncate">
+                <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                <span className="truncate">{currentDrill.number} • {currentDrill.name}</span>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 <button
                   onClick={() => setIsMuted(!isMuted)}
-                  className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-mono flex items-center gap-1"
+                  className="px-2 sm:px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-xs font-mono flex items-center gap-1"
                 >
                   {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
-                  <span>{isMuted ? 'Muted' : 'Sound On'}</span>
+                  <span>{isMuted ? 'Muted' : 'Sound'}</span>
                 </button>
 
-                <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-xs font-mono">
+                <div className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-xs font-mono">
                   <Zap size={12} className="text-yellow-400" />
                   <span>{currentDrill.impact}</span>
                 </div>
