@@ -1,24 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, ChefHat, Clock, Flame, Dumbbell, Check, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
 import { DietaryPreference } from '../types';
-
-interface GeneratedRecipe {
-  dishName: string;
-  prepTime: string;
-  difficulty: string;
-  mealType: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  fiber: number;
-  ingredientsUsed: string[];
-  instructions: string[];
-  chefTip: string;
-  healthBenefit: string;
-  dietaryCategory: string;
-  source: string;
-}
+import { generateRecipeFromIngredients, GeneratedRecipe } from '../services/aiPlateAndRecipeService';
 
 interface IngredientRecipeModalProps {
   isOpen: boolean;
@@ -83,26 +66,19 @@ export const IngredientRecipeModal: React.FC<IngredientRecipeModalProps> = ({
     setIsLogged(false);
 
     try {
-      const res = await fetch('/api/generate-recipe-from-ingredients', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ingredients: ingredientsText,
-          dietaryPreference,
-          mealType: targetMeal,
-          targetKcal,
-        }),
+      const data = await generateRecipeFromIngredients({
+        ingredients: ingredientsText,
+        dietaryPreference,
+        mealType: targetMeal,
+        targetKcal,
       });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Failed to generate recipe');
-      }
-
-      const data: GeneratedRecipe = await res.json();
       setRecipe(data);
     } catch (err: any) {
-      setError(err.message || 'Something went wrong. Please retry.');
+      console.error('Cook with AI error:', err);
+      const cleanMsg = err?.message && !err.message.includes('<!doctype')
+        ? err.message
+        : 'Culinary engine is preparing recipes. Please click Generate again.';
+      setError(cleanMsg);
     } finally {
       setIsLoading(false);
     }

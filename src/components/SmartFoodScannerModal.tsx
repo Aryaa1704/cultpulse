@@ -39,6 +39,7 @@ import {
   DAILY_SCAN_LIMIT,
   UserAIQuotaStatus,
 } from '../services/aiUsageManager';
+import { analyzePlatePhoto } from '../services/aiPlateAndRecipeService';
 
 export interface AnalyzedPlateItem {
   id: string;
@@ -235,22 +236,14 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
     setAiAnalysis(null);
 
     try {
-      const response = await fetch('/api/analyze-food', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          image: imageData,
-          note: hintNote || userNote,
-          language: language || 'en',
-        }),
-      });
+      const data = await analyzePlatePhoto(
+        imageData,
+        hintNote || userNote,
+        language || 'en'
+      );
 
-      const data = await response.json();
-
-      if (!response.ok || data.error) {
-        throw new Error(data.error || `Server returned HTTP ${response.status}`);
+      if (!data || !data.items || data.items.length === 0) {
+        throw new Error('Could not identify food items in this photo. Please ensure good lighting and clear view.');
       }
 
       setAiAnalysis(data);
@@ -281,9 +274,10 @@ export const SmartFoodScannerModal: React.FC<SmartFoodScannerModalProps> = ({
     } catch (err: any) {
       console.error('Vision analysis error:', err);
       setAiAnalysis(null);
-      setScannerError(
-        err.message || 'Optical vision engine was busy. Please click "Retry Scan" to try again.'
-      );
+      const cleanMsg = err?.message && !err.message.includes('<!doctype')
+        ? err.message
+        : 'Optical vision engine was busy. Please click "Retry Scan" to try again.';
+      setScannerError(cleanMsg);
     } finally {
       setAnalyzingPhoto(false);
     }

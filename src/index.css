@@ -54,6 +54,27 @@ html.dark ::-webkit-scrollbar-thumb:hover {
   background: #4e5052;
 }
 
+/* Safe area support for mobile devices / notches */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+.safe-header-top {
+  /* On mobile phones (e.g. Android APK with notch/camera punch-hole), ensure generous clearance from status bar */
+  padding-top: max(env(safe-area-inset-top, 0px), 36px);
+  padding-bottom: 10px;
+}
+
+@media (min-width: 640px) {
+  .safe-header-top {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
+
 .font-display {
   font-family: var(--font-space);
 }

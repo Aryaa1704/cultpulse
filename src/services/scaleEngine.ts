@@ -109,8 +109,8 @@ let syncStatus: 'synced' | 'syncing' | 'offline' | 'error' = 'synced';
 // Pre-seeded Active Community Athletes for the Admin Telemetry Hub
 const defaultCommunityUsers: RegisteredUserSummary[] = [
   {
-    userId: 'usr_aryan_admin',
-    name: 'Aryan Sharma',
+    userId: 'usr_joseph_admin',
+    name: 'Joseph Smith',
     email: 'admin.protected@cultpulse.internal',
     avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80',
     role: 'admin',
@@ -198,8 +198,8 @@ const defaultCommunityUsers: RegisteredUserSummary[] = [
 const initialActivities: UserActivityEvent[] = [
   {
     id: 'act_seed_1',
-    userId: 'usr_aryan_admin',
-    userName: 'Aryan Sharma',
+    userId: 'usr_joseph_admin',
+    userName: 'Joseph Smith',
     userEmail: 'admin.protected@cultpulse.internal',
     userAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=160&auto=format&fit=crop&q=80',
     actionType: 'FOOD_LOG',
@@ -432,7 +432,7 @@ export function upsertUserInDirectory(patch: Partial<RegisteredUserSummary> & { 
       status: 'online',
     };
   } else {
-    const isOwner = patch.userId === 'usr_aryan_admin' || patch.role === 'admin';
+    const isOwner = patch.userId === 'usr_joseph_admin' || patch.role === 'admin';
     const newUser: RegisteredUserSummary = {
       userId: patch.userId,
       name: sanitizeInput(patch.name),

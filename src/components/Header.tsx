@@ -122,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-b border-[#E5E5E5] dark:border-[#252628] px-2 sm:px-6 py-2 sm:py-2.5 max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full max-w-full flex items-center justify-between transition-colors overflow-hidden">
+    <header className="sticky top-0 z-40 bg-[#FBF9F9]/95 dark:bg-[#121314]/95 backdrop-blur-md border-b border-[#E5E5E5] dark:border-[#252628] px-3 sm:px-6 safe-header-top max-w-5xl lg:max-w-6xl xl:max-w-7xl mx-auto w-full max-w-full flex items-center justify-between transition-colors">
       {/* Brand & Section Indicator */}
       <div className="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink">
         <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[#242424] dark:bg-amber-400 text-white dark:text-black flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
@@ -198,12 +198,12 @@ export const Header: React.FC<HeaderProps> = ({
           id="btn-toggle-theme"
           title={theme === 'dark' ? t('header_theme_default') : t('header_theme_dark')}
           aria-label={theme === 'dark' ? 'Switch to Default Theme' : 'Switch to Dark Theme'}
-          className="p-1 sm:p-1.5 rounded-full bg-white dark:bg-[#1E1F21] border border-[#E5E5E5] dark:border-[#2C2D30] text-[#4A4A4A] dark:text-zinc-200 hover:text-[#1B1C1C] dark:hover:text-white transition-colors shrink-0"
+          className="p-2 sm:p-1.5 rounded-full bg-white dark:bg-[#1E1F21] border border-[#E5E5E5] dark:border-[#2C2D30] text-[#4A4A4A] dark:text-zinc-200 hover:text-[#1B1C1C] dark:hover:text-white transition-colors shrink-0 min-w-[32px] min-h-[32px] flex items-center justify-center cursor-pointer active:scale-95"
         >
           {theme === 'dark' ? (
-            <Sun size={13} className="text-amber-400" />
+            <Sun size={14} className="text-amber-400" />
           ) : (
-            <Moon size={13} className="text-[#4A4A4A]" />
+            <Moon size={14} className="text-[#4A4A4A]" />
           )}
         </button>
 
@@ -396,7 +396,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onAuthClick}
             id="btn-header-signin"
-            className="px-2 sm:px-2.5 py-1 rounded-full bg-[#242424] hover:bg-black dark:bg-amber-400 dark:hover:bg-amber-500 text-white dark:text-black font-semibold text-[10px] sm:text-[11px] transition-colors shadow-xs shrink-0"
+            className="px-3 sm:px-3.5 py-1.5 rounded-full bg-[#242424] hover:bg-black dark:bg-amber-400 dark:hover:bg-amber-500 text-white dark:text-black font-semibold text-[11px] sm:text-xs transition-all shadow-xs shrink-0 cursor-pointer active:scale-95 min-h-[32px] flex items-center justify-center"
           >
             Sign In
           </button>
@@ -405,7 +405,7 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={onAvatarClick}
             aria-label="Profile"
             title={`Logged in as ${userDisplayName || userEmail}`}
-            className="relative w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden border border-[#C4C7C7] dark:border-zinc-600 hover:border-[#242424] transition-colors focus:outline-hidden shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800"
+            className="relative w-8 h-8 rounded-full overflow-hidden border border-[#C4C7C7] dark:border-zinc-600 hover:border-[#242424] transition-colors focus:outline-hidden shrink-0 flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 cursor-pointer active:scale-95"
           >
             {avatarUrl ? (
               <img

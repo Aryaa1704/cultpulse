@@ -1,46 +1,22 @@
 import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
-import { GoogleGenAI } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
+import {
+  executePlateVisionWaterfall,
+  executeRecipeWaterfall,
+  getWaterfallProvidersStatus,
+  FoodAnalysisResponse,
+} from './server/aiWaterfallRouter';
 
 dotenv.config();
 
 const PORT = 3000;
 
-interface AnalyzedFoodItem {
-  id: string;
-  name: string;
-  quantityDescription: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fats: number;
-  fiber: number;
-  notes?: string;
-}
-
-interface FoodAnalysisResult {
-  mealName: string;
-  dishType: string;
-  totalCalories: number;
-  totalProtein: number;
-  totalCarbs: number;
-  totalFats: number;
-  totalFiber: number;
-  confidence: string;
-  items: AnalyzedFoodItem[];
-  summary: string;
-  healthTip: string;
-  macronutrientInsight: string;
-  dietaryFlags: string[];
-  source: 'smart-vision' | 'nutrition-engine';
-}
-
 // Smart In-Memory Optical Plate & Nutrition Cache
 // Provides instant sub-20ms responses for repeated foods/plates with 0 API token cost
 interface CachedVisionEntry {
-  result: FoodAnalysisResult;
+  result: FoodAnalysisResponse;
   timestamp: number;
 }
 
@@ -60,6 +36,17 @@ function computeImageSignature(base64: string, note?: string): string {
 async function startServer() {
   const app = express();
 
+  // CORS support for mobile APK / Capacitor WebViews and cross-origin clients
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    if (req.method === 'OPTIONS') {
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
   // Support large base64 image uploads from camera or device storage
   app.use(express.json({ limit: '30mb' }));
   app.use(express.urlencoded({ extended: true, limit: '30mb' }));
@@ -74,7 +61,16 @@ async function startServer() {
     });
   });
 
-  // Food Vision Analysis Endpoint
+  // Multi-Provider Waterfall Status & Telemetry
+  app.get('/api/ai-providers-status', (_req, res) => {
+    res.json({
+      status: 'ok',
+      executionOrder: 'Waterfall from Priority 9 down to Priority 1 (Open Source / Free Tier first, then Gemini), with Tier 0 Local Deterministic Engine',
+      providers: getWaterfallProvidersStatus(),
+    });
+  });
+
+  // Food Vision Analysis Endpoint with Reverse Waterfall Routing (9 -> 8 -> 7 -> 6 -> 5 -> 4 -> 3 -> 2 -> 1 -> 0)
   app.post('/api/analyze-food', async (req, res) => {
     try {
       const { image, note, language } = req.body;
@@ -94,15 +90,6 @@ async function startServer() {
         });
       }
 
-      // Check if user has configured GEMINI_API_KEY
-      const apiKey = process.env.GEMINI_API_KEY;
-
-      if (!apiKey) {
-        return res.status(500).json({
-          error: 'GEMINI_API_KEY is missing. Please set your Gemini API Key in Settings > Secrets.',
-        });
-      }
-
       // Parse base64 and mime type
       let mimeType = 'image/jpeg';
       let base64Data = image;
@@ -115,290 +102,8 @@ async function startServer() {
         }
       }
 
-      const ai = new GoogleGenAI({
-        apiKey,
-        httpOptions: {
-          headers: {
-            'User-Agent': 'aistudio-build',
-          },
-        },
-      });
-
-      const prompt = `You are a certified clinical nutritionist and expert computer vision food recognition system.
-Carefully examine the user's food photo and identify the EXACT dish, thali, or food items visible in the image.
-
-CRITICAL VISUAL RECOGNITION RULES:
-1. Examine what is ACTUALLY present on the plate / bowl / tray with optical precision:
-   - Identify the specific cuisine and authentic dish name:
-     * "Rajma Chawal": Dark red-brown kidney bean curry in rich onion-tomato masala gravy (distinct whole kidney beans visible) served alongside white steamed basmati or jeera rice, often accompanied with whole fresh green chili, onion rings, or salad.
-     * "Dal Baati Churma" (Rajasthani Thali): Characterized by round, cracked baked wheat dough balls (baati), sweet crumble balls or powder (churma), a bowl of yellow/panchmel dal (often garnished with coriander), raw salad (sliced cucumber/kheera, onions), and green mint/coriander chutney. DO NOT confuse baatis with puris! Baatis are baked dense dough balls, NOT thin fried puffed breads.
-     * "Puri Sabzi": Deep-fried golden-yellow puffed wheat breads (puffy and thin) with spiced potato curry (aloo sabzi), achar, and sliced onions.
-     * "Chole Bhature": Very large puffed leavened fried bread (bhatura) with dark brown chickpea gravy.
-     * "Roti / Chapati / Thali": Flat, dry-roasted wheat breads with dry brown spots (not puffed by frying) with dal, sabzi, curd, and salad.
-     * "Dosa / Idli": Fermented crisp crepes or steamed rice cakes with sambar and coconut/tomato chutneys.
-     * "Biryani / Pulao": Spiced basmati rice with meat/paneer/vegetables and raita.
-     * "Pav Bhaji": Buttered soft bread rolls with thick spiced vegetable mash.
-     * Western / Global Foods: Burgers, pizzas, sandwiches, pastas, wraps, grain bowls, grilled chicken, sushi, noodles, salads, etc.
-   - Look at the actual breads/grains, curries/gravies, proteins, salads, and condiments. Never default to Puri Sabzi unless the image clearly shows golden fried puffed puris with aloo sabzi!
-
-2. Itemize EVERY distinct component visible on the plate with realistic portion sizes:
-   - Specific component name
-   - Estimated portion and weight (e.g., "2 medium baked baatis (~140g)", "1 katori Panchmel Dal (~220g)", "2 sweet churma laddus (~110g)", "Cucumber slices (~50g)", "Green mint chutney (~25g)")
-   - Realistic nutritional values:
-     * Calories (kcal)
-     * Protein (g)
-     * Carbohydrates (g)
-     * Fats (g)
-     * Dietary Fiber (g)
-   - Culinary & preparation notes (e.g., baking method, ghee content, oil absorption, spice profile)
-
-3. Accurately calculate the plate totals by summing all visible items:
-   - totalCalories, totalProtein, totalCarbs, totalFats, totalFiber.
-
-4. Provide clinical nutritionist summary, health tips for balance, macronutrient insights, and dietary flags.
-
-User optional extra context/note: "${note || 'None provided'}"
-Language for text output: ${language || 'en'}
-
-Respond strictly with valid JSON conforming to this schema:
-{
-  "mealName": "Specific Name of Detected Meal (e.g. 'Rajasthani Dal Baati Churma Thali')",
-  "dishType": "Cuisine style / Category",
-  "totalCalories": number,
-  "totalProtein": number,
-  "totalCarbs": number,
-  "totalFats": number,
-  "totalFiber": number,
-  "confidence": "e.g. 97%",
-  "items": [
-    {
-      "id": "item-1",
-      "name": "Component Name",
-      "quantityDescription": "e.g. 2 baked baatis (~140g)",
-      "calories": number,
-      "protein": number,
-      "carbs": number,
-      "fats": number,
-      "fiber": number,
-      "notes": "Culinary details"
-    }
-  ],
-  "summary": "Nutritional summary of the meal.",
-  "healthTip": "Actionable dietary advice.",
-  "macronutrientInsight": "Macronutrient breakdown and distribution.",
-  "dietaryFlags": ["Flag1", "Flag2"]
-}`;
-
-      // Try candidate models in order of stability, speed, and vision capability
-      const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-flash-latest'];
-      let lastError: any = null;
-      let responseText: string | null = null;
-      let usedModel: string = candidateModels[0];
-
-      for (const modelName of candidateModels) {
-        try {
-          console.log(`Analyzing food photo with vision model: ${modelName}...`);
-          const response = await ai.models.generateContent({
-            model: modelName,
-            contents: {
-              parts: [
-                {
-                  inlineData: {
-                    data: base64Data,
-                    mimeType: mimeType,
-                  },
-                },
-                {
-                  text: `${prompt}\n${note ? `User extra note/context: "${note}"` : ''}`,
-                },
-              ],
-            },
-            config: {
-              responseMimeType: 'application/json',
-              systemInstruction:
-                'You are an expert clinical dietitian and optical food recognition AI. Always accurately identify the specific dish depicted in the image and return a detailed multi-item plate breakdown in valid JSON.',
-            },
-          });
-
-          if (response.text) {
-            responseText = response.text;
-            usedModel = modelName;
-            console.log(`Food analysis succeeded with model: ${modelName}`);
-            break;
-          }
-        } catch (modelErr: any) {
-          console.warn(`Vision model ${modelName} failed or busy:`, modelErr.message || modelErr);
-          lastError = modelErr;
-          // Continue to next candidate model
-        }
-      }
-
-      if (!responseText) {
-        console.warn('Vision models unavailable, activating high-precision nutritional fallback:', lastError?.message);
-        // Construct an intelligent realistic plate fallback so user is never blocked
-        const cleanNote = (note || '').toLowerCase();
-        let fallbackMealName = 'Rajma Chawal with Steamed Basmati Rice';
-        let fallbackDishType = 'North Indian Platter';
-        let fallbackItems = [
-          {
-            id: 'item-1',
-            name: 'Rajma Masala (Red Kidney Bean Curry)',
-            quantityDescription: '1 bowl / katori (~180g)',
-            calories: 220,
-            protein: 11.5,
-            carbs: 34,
-            fats: 4.5,
-            fiber: 8.2,
-            notes: 'Red kidney beans simmered in spiced onion-tomato gravy',
-          },
-          {
-            id: 'item-2',
-            name: 'Steamed Jeera Basmati Rice',
-            quantityDescription: '1 plate serving (~180g)',
-            calories: 260,
-            protein: 4.5,
-            carbs: 52,
-            fats: 3.5,
-            fiber: 1.8,
-            notes: 'Long-grain fragrant basmati rice with cumin seeds',
-          },
-          {
-            id: 'item-3',
-            name: 'Fresh Green Chili & Onion Garnish',
-            quantityDescription: '1 green chili + onion slices (~20g)',
-            calories: 18,
-            protein: 0.6,
-            carbs: 3,
-            fats: 0.2,
-            fiber: 1.2,
-            notes: 'Crisp fresh salad garnish',
-          },
-        ];
-
-        if (cleanNote.includes('baati') || cleanNote.includes('dal bati') || cleanNote.includes('churma')) {
-          fallbackMealName = 'Rajasthani Dal Baati Churma Thali';
-          fallbackDishType = 'Rajasthani Traditional';
-          fallbackItems = [
-            {
-              id: 'item-1',
-              name: 'Baked Whole Wheat Baatis with Ghee',
-              quantityDescription: '2 medium baked baatis (~140g)',
-              calories: 360,
-              protein: 8,
-              carbs: 54,
-              fats: 13,
-              fiber: 6.5,
-              notes: 'Traditional clay-baked wheat dumplings dipped in desi ghee',
-            },
-            {
-              id: 'item-2',
-              name: 'Panchmel Dal Tadka',
-              quantityDescription: '1 bowl (~200g)',
-              calories: 210,
-              protein: 12,
-              carbs: 28,
-              fats: 6,
-              fiber: 8,
-              notes: 'Five-lentil mix tempered with cumin, garlic, and hing',
-            },
-            {
-              id: 'item-3',
-              name: 'Sweet Churma',
-              quantityDescription: '1 serving (~60g)',
-              calories: 240,
-              protein: 3,
-              carbs: 38,
-              fats: 9,
-              fiber: 2,
-              notes: 'Crushed roasted wheat with jaggery and ghee',
-            },
-          ];
-        }
-
-        const totCal = fallbackItems.reduce((acc, i) => acc + i.calories, 0);
-        const totP = fallbackItems.reduce((acc, i) => acc + i.protein, 0);
-        const totC = fallbackItems.reduce((acc, i) => acc + i.carbs, 0);
-        const totF = fallbackItems.reduce((acc, i) => acc + i.fats, 0);
-        const totFib = fallbackItems.reduce((acc, i) => acc + i.fiber, 0);
-
-        return res.json({
-          mealName: fallbackMealName,
-          dishType: fallbackDishType,
-          totalCalories: totCal,
-          totalProtein: Math.round(totP * 10) / 10,
-          totalCarbs: Math.round(totC * 10) / 10,
-          totalFats: Math.round(totF * 10) / 10,
-          totalFiber: Math.round(totFib * 10) / 10,
-          confidence: '96.2%',
-          items: fallbackItems,
-          summary: 'Balanced high-fiber Indian meal combining legumes and grains for a complete protein profile.',
-          healthTip: 'Pairing kidney beans with rice creates a complementary amino acid profile, maximizing muscle protein synthesis.',
-          macronutrientInsight: 'Optimal balance of sustained complex carbohydrates, plant-based protein, and dietary fiber.',
-          dietaryFlags: ['High Fiber', 'Balanced Macros', 'Plant Protein'],
-          source: 'nutrition-engine',
-        });
-      }
-
-      let parsedData: any;
-      try {
-        parsedData = JSON.parse(responseText);
-      } catch (e) {
-        const cleanJson = responseText.replace(/```json\n?|\n?```/g, '').trim();
-        parsedData = JSON.parse(cleanJson);
-      }
-
-      // Normalize fields
-      const result: FoodAnalysisResult = {
-        mealName: parsedData.mealName || parsedData.title || 'Detected Meal Platter',
-        dishType: parsedData.dishType || 'Plated Meal',
-        totalCalories: Number(parsedData.totalCalories) || 510,
-        totalProtein: Number(parsedData.totalProtein) || 17,
-        totalCarbs: Number(parsedData.totalCarbs) || 86,
-        totalFats: Number(parsedData.totalFats) || 10,
-        totalFiber: Number(parsedData.totalFiber) || 8,
-        confidence: parsedData.confidence || '96.5%',
-        items: Array.isArray(parsedData.items)
-          ? parsedData.items.map((it: any, idx: number) => ({
-              id: it.id || `item-${idx}`,
-              name: it.name || 'Food Item',
-              quantityDescription: it.quantityDescription || it.portion || '1 serving',
-              calories: Number(it.calories) || 0,
-              protein: Number(it.protein) || 0,
-              carbs: Number(it.carbs) || 0,
-              fats: Number(it.fats) || 0,
-              fiber: Number(it.fiber) || 0,
-              notes: it.notes || '',
-            }))
-          : [],
-        summary:
-          parsedData.summary ||
-          'Real-time optical nutrition analysis generated with multi-item plate breakdown.',
-        healthTip:
-          parsedData.healthTip ||
-          'Balance energy-dense staples with fresh protein sources and fiber-rich greens.',
-        macronutrientInsight:
-          parsedData.macronutrientInsight ||
-          'Detailed macronutrient distribution calculated from visible plate components.',
-        dietaryFlags: Array.isArray(parsedData.dietaryFlags) ? parsedData.dietaryFlags : [],
-        source: 'smart-vision',
-      };
-
-      // Sanity check: Ensure items array is populated
-      if (result.items.length === 0) {
-        result.items = [
-          {
-            id: 'item-1',
-            name: result.mealName,
-            quantityDescription: 'Full plate',
-            calories: result.totalCalories,
-            protein: result.totalProtein,
-            carbs: result.totalCarbs,
-            fats: result.totalFats,
-            fiber: result.totalFiber,
-            notes: 'Calculated whole plate portion',
-          },
-        ];
-      }
+      // Execute AI Waterfall across providers (Priority 9 down to 1, then Tier 0 Local Fallback)
+      const result = await executePlateVisionWaterfall(base64Data, mimeType, note, language);
 
       // Cache the result in memory for 0-cost instant repeated scans
       foodVisionCache.set(cacheKey, {
@@ -408,7 +113,7 @@ Respond strictly with valid JSON conforming to this schema:
 
       return res.json(result);
     } catch (err: any) {
-      console.error('Gemini Vision analysis unexpected error:', err);
+      console.error('Vision analysis error:', err);
       return res.status(500).json({
         error: 'Unable to analyze image. Please verify image format and click Retry Scan.',
         details: err.message,
@@ -417,6 +122,7 @@ Respond strictly with valid JSON conforming to this schema:
   });
 
   // AI Ingredient-to-Recipe Generation Endpoint (Raw materials to finished dish & macros)
+  // Executes reverse waterfall (9 down to 1, then Tier 0 Deterministic Culinary Chef)
   app.post('/api/generate-recipe-from-ingredients', async (req, res) => {
     try {
       const { ingredients, dietaryPreference = 'veg', mealType = 'lunch', targetKcal, notes, language = 'en' } = req.body;
@@ -426,176 +132,17 @@ Respond strictly with valid JSON conforming to this schema:
       }
 
       const rawIngredientsText = Array.isArray(ingredients) ? ingredients.join(', ') : String(ingredients);
-      const apiKey = process.env.GEMINI_API_KEY;
 
-      if (apiKey) {
-        try {
-          const ai = new GoogleGenAI({
-            apiKey,
-            httpOptions: {
-              headers: {
-                'User-Agent': 'aistudio-build',
-              },
-            },
-          });
-
-          const prompt = `You are a certified professional culinary chef and sports nutritionist.
-The user has provided the following RAW INGREDIENTS available in their kitchen:
-"${rawIngredientsText}"
-
-User's Dietary Lifestyle: ${dietaryPreference} (${dietaryPreference === 'veg' ? 'Strict Vegetarian - NO meat, NO eggs' : dietaryPreference === 'eggetarian' ? 'Eggetarian - Eggs and dairy/plant foods allowed, NO meat/chicken/fish' : 'Non-Vegetarian - All proteins allowed'})
-Target Meal Type: ${mealType}
-${targetKcal ? `Target Calories: ~${targetKcal} kcal` : ''}
-${notes ? `User Custom Note: "${notes}"` : ''}
-Language: ${language}
-
-TASK:
-Invent a realistic, delicious, high-nutrition recipe that the user can actually cook using PRIMARILY these available raw materials (plus basic staples like salt, cooking oil/ghee, water, and common spices).
-CRITICAL RULES:
-1. Strictly respect the dietary preference (${dietaryPreference}). NEVER suggest meat for veg/eggetarian, NEVER suggest eggs for pure veg.
-2. Provide authentic, precise macro estimates (calories, protein in grams, carbs in grams, fats in grams, fiber in grams).
-3. Keep cooking steps straightforward, realistic (10-25 mins), and easy to follow at home.
-
-Return ONLY a valid JSON object matching this schema without markdown fences:
-{
-  "dishName": "Authentic dish name",
-  "prepTime": "15 mins",
-  "difficulty": "Easy" | "Medium",
-  "mealType": "${mealType}",
-  "calories": 350,
-  "protein": 24,
-  "carbs": 35,
-  "fats": 12,
-  "fiber": 6,
-  "ingredientsUsed": [
-    "Quantity and ingredient 1",
-    "Quantity and ingredient 2"
-  ],
-  "instructions": [
-    "Step 1: ...",
-    "Step 2: ...",
-    "Step 3: ..."
-  ],
-  "chefTip": "Actionable culinary tip",
-  "healthBenefit": "Nutritional benefit for energy and muscle synthesis",
-  "dietaryCategory": "${dietaryPreference}"
-}`;
-
-          const response = await ai.models.generateContent({
-            model: 'gemini-3.1-flash-lite',
-            contents: prompt,
-            config: {
-              responseMimeType: 'application/json',
-              temperature: 0.3,
-            },
-          });
-
-          const text = response.text || '{}';
-          const cleanText = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-          const parsed = JSON.parse(cleanText);
-
-          return res.json({
-            dishName: parsed.dishName || 'Custom Protein Bowl',
-            prepTime: parsed.prepTime || '15 mins',
-            difficulty: parsed.difficulty || 'Easy',
-            mealType: parsed.mealType || mealType,
-            calories: Number(parsed.calories) || 350,
-            protein: Number(parsed.protein) || 20,
-            carbs: Number(parsed.carbs) || 35,
-            fats: Number(parsed.fats) || 12,
-            fiber: Number(parsed.fiber) || 5,
-            ingredientsUsed: Array.isArray(parsed.ingredientsUsed) ? parsed.ingredientsUsed : [rawIngredientsText],
-            instructions: Array.isArray(parsed.instructions) ? parsed.instructions : ['Cook ingredients together in a skillet.'],
-            chefTip: parsed.chefTip || 'Season with fresh herbs and a dash of lemon juice.',
-            healthBenefit: parsed.healthBenefit || 'Balanced fuel supporting sustained energy and lean recovery.',
-            dietaryCategory: dietaryPreference,
-            source: 'smart-chef',
-          });
-        } catch (geminiError: any) {
-          console.warn('Gemini recipe generation fallback triggered:', geminiError?.message);
-        }
-      }
-
-      // Intelligent Deterministic Culinary Engine Fallback if offline/no key
-      const ingLower = rawIngredientsText.toLowerCase();
-      let calculatedCalories = targetKcal || 380;
-      let protein = 22;
-      let carbs = 40;
-      let fats = 14;
-      let fiber = 6;
-      let dishName = 'Chef Crafted Skillet Bowl';
-
-      if (dietaryPreference === 'veg') {
-        if (ingLower.includes('paneer') || ingLower.includes('tofu')) {
-          dishName = 'Pan-Seared Paneer & Herb Stir-Fry';
-          protein = 26;
-          fats = 18;
-          carbs = 20;
-          calculatedCalories = 346;
-        } else if (ingLower.includes('oats') || ingLower.includes('milk') || ingLower.includes('banana')) {
-          dishName = 'High-Fiber Power Porridge Bowl';
-          protein = 15;
-          carbs = 58;
-          fats = 8;
-          calculatedCalories = 364;
-        } else if (ingLower.includes('dal') || ingLower.includes('rice') || ingLower.includes('lentil')) {
-          dishName = 'Homestyle Spiced Lentil Khichdi with Greens';
-          protein = 18;
-          carbs = 62;
-          fats = 6;
-          calculatedCalories = 374;
-        } else {
-          dishName = 'Sautéed Garden Veggie & Seed Warm Medley';
-          protein = 12;
-          carbs = 35;
-          fats = 10;
-          calculatedCalories = 278;
-        }
-      } else if (dietaryPreference === 'eggetarian' || ingLower.includes('egg')) {
-        dishName = 'Spiced Country Scramble with Sautéed Veggies';
-        protein = 24;
-        carbs = 18;
-        fats = 15;
-        calculatedCalories = 303;
-      } else {
-        if (ingLower.includes('chicken') || ingLower.includes('meat') || ingLower.includes('fish')) {
-          dishName = 'Herb-Grilled Lean Cut with Steamed Veggies';
-          protein = 38;
-          carbs = 12;
-          fats = 9;
-          calculatedCalories = 281;
-        } else {
-          dishName = 'High-Protein Farmer Breakfast Skillet';
-          protein = 26;
-          carbs = 28;
-          fats = 14;
-          calculatedCalories = 342;
-        }
-      }
-
-      return res.json({
-        dishName,
-        prepTime: '15 mins',
-        difficulty: 'Easy',
+      const recipe = await executeRecipeWaterfall({
+        ingredients: rawIngredientsText,
+        dietaryPreference,
         mealType,
-        calories: calculatedCalories,
-        protein,
-        carbs,
-        fats,
-        fiber,
-        ingredientsUsed: rawIngredientsText.split(',').map((s) => s.trim()).filter(Boolean),
-        instructions: [
-          `Prep and chop ${rawIngredientsText} into uniform bite-sized pieces.`,
-          'Warm a non-stick pan with 1 tsp oil or ghee over medium heat.',
-          'Sauté aromatics, then add the prepared ingredients and gently cook for 8-10 minutes.',
-          'Season with sea salt, black pepper, and your favorite whole spices.',
-          'Serve warm as a balanced, high-protein meal.',
-        ],
-        chefTip: 'Lightly roasting your whole spices brings out essential aromatic oils without adding extra calories.',
-        healthBenefit: `Rich in macro-nutrients tailored specifically for your ${dietaryPreference} lifestyle.`,
-        dietaryCategory: dietaryPreference,
-        source: 'culinary-engine',
+        targetKcal,
+        notes,
+        language,
       });
+
+      return res.json(recipe);
     } catch (err: any) {
       console.error('Recipe generation error:', err);
       return res.status(500).json({ error: 'Failed to generate recipe from ingredients', details: err.message });

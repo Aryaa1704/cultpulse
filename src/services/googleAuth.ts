@@ -16,7 +16,15 @@ import firebaseConfig from '../../firebase-applet-config.json';
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 
-// All Google Workspace scopes enabled for Drive, Sheets, Calendar, Contacts, Gmail
+// Standard Google Auth Provider for Athlete sign-in
+const provider = new GoogleAuthProvider();
+provider.addScope('profile');
+provider.addScope('email');
+provider.setCustomParameters({
+  prompt: 'select_account',
+});
+
+// All Google Workspace scopes enabled specifically for Drive, Sheets, Calendar, Contacts, Gmail
 export const WORKSPACE_SCOPES = [
   'https://www.googleapis.com/auth/drive',
   'https://www.googleapis.com/auth/spreadsheets',
@@ -29,8 +37,11 @@ export const WORKSPACE_SCOPES = [
   'https://www.googleapis.com/auth/gmail.readonly',
 ];
 
-const provider = new GoogleAuthProvider();
-WORKSPACE_SCOPES.forEach((scope) => provider.addScope(scope));
+export const getWorkspaceProvider = () => {
+  const wsProvider = new GoogleAuthProvider();
+  WORKSPACE_SCOPES.forEach((scope) => wsProvider.addScope(scope));
+  return wsProvider;
+};
 
 // Flags & in-memory token cache
 let isSigningIn = false;
