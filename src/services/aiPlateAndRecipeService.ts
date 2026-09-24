@@ -60,8 +60,18 @@ const SECONDARY_CLOUD_API = 'https://ais-dev-wobtj3nggure7u4cswio4x-807557467211
  * On Android APK (Capacitor/localhost), calls the deployed Cloud Run instance.
  */
 export function getApiBaseUrl(): string {
+  // If Azure or external backend URL is specified in environment variables:
+  const customBackend = (import.meta as any).env?.VITE_BACKEND_URL;
+  if (customBackend && typeof customBackend === 'string' && customBackend.trim()) {
+    return customBackend.trim().replace(/\/+$/, '');
+  }
+
   if (typeof window !== 'undefined') {
     const { protocol, hostname, port } = window.location;
+    // When running on Vercel deployment without custom backend, use relative /api:
+    if (hostname.includes('vercel.app')) {
+      return '';
+    }
     // When running inside Android Capacitor APK or file webview:
     if (
       protocol === 'capacitor:' ||
@@ -90,8 +100,12 @@ async function safeFetchJson<T>(
   if (base) {
     targetUrls.push(`${base}${endpoint}`);
     targetUrls.push(`${SECONDARY_CLOUD_API}${endpoint}`);
+    targetUrls.push(endpoint); // Relative URL fallback
+  } else {
+    targetUrls.push(endpoint); // Relative URL first (Local / Vercel)
+    targetUrls.push(`${PRIMARY_CLOUD_API}${endpoint}`); // Cloud Run fallback
+    targetUrls.push(`${SECONDARY_CLOUD_API}${endpoint}`);
   }
-  targetUrls.push(endpoint); // Relative URL fallback
 
   for (const url of targetUrls) {
     try {
