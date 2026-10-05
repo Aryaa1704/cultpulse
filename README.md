@@ -3,6 +3,7 @@
 > AI-powered fitness, nutrition, and wellness companion with multimodal food analysis, personalized goals, workout tracking, and resilient multi-provider AI inference.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-cultpulse.vercel.app-black?style=flat-square&logo=vercel)](https://cultpulse.vercel.app)
+[![CI](https://github.com/Aryaa1704/cultpulse/actions/workflows/ci.yml/badge.svg)](https://github.com/Aryaa1704/cultpulse/actions/workflows/ci.yml)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vite.dev/)
