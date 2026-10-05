@@ -1,7 +1,8 @@
 {
-  "name": "react-example",
+  "name": "cultpulse",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Full-stack AI fitness and nutrition companion with multimodal food analysis, recipe generation, personalized goals, and resilient multi-provider AI inference.",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -34,5 +35,8 @@
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.3"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
