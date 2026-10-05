@@ -268,8 +268,5 @@ docker run --env-file .env -p 3000:3000 cultpulse
 
 **Aryaa1704**
 
-Built as a full-stack AI engineering project focused on resilient inference, product UX, and scalable application architecture.
+Built as a full-stack AI engineering project focused on resilient inference, product UX, and scalable application .
 
-## License
-
-This repository does not currently declare an open-source license. Treat the code as **all rights reserved** unless a license is added.
